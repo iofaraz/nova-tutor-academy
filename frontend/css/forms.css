@@ -1,0 +1,72 @@
+.form-shell {
+  padding: 34px;
+  border: 1px solid #ddd8ef;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 22px 55px rgba(45, 35, 105, .12);
+}
+.form-shell h2 { margin-bottom: 8px; font-size: 1.7rem; }
+.form-intro { margin-bottom: 28px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.form-group { display: grid; gap: 7px; }
+.form-group.full { grid-column: 1 / -1; }
+.form-group label { color: var(--blue-950); font-size: .88rem; font-weight: 750; }
+.required { color: var(--danger); }
+.form-control {
+  width: 100%;
+  min-height: 48px;
+  padding: 11px 13px;
+  border: 1px solid var(--slate-300);
+  border-radius: 12px;
+  outline: none;
+  color: var(--slate-900);
+  background: #fdfcff;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+textarea.form-control { min-height: 118px; resize: vertical; }
+.form-control::placeholder { color: #9b96ac; }
+.form-control:focus { border-color: var(--blue-500); background: var(--white); box-shadow: 0 0 0 4px rgba(109, 93, 252, .12); }
+.form-control.invalid { border-color: var(--danger); }
+.field-hint { color: var(--slate-500); font-size: .78rem; }
+.form-actions { display: flex; align-items: center; gap: 16px; margin-top: 26px; }
+.form-status { display: none; padding: 13px 15px; border-radius: 10px; font-size: .9rem; }
+.form-status.show { display: block; margin-top: 18px; }
+.form-status.success { color: #0c6946; border: 1px solid #a5dfc9; background: #ebfaf4; }
+.form-status.error { color: #9f2535; border: 1px solid #f0bbc2; background: #fff1f3; }
+.form-status.info { color: var(--blue-800); border: 1px solid #cbc4ff; background: var(--blue-50); }
+.submit-button[disabled] { cursor: wait; opacity: .68; transform: none; }
+.login-card { width: min(calc(100% - 28px), 430px); margin: 70px auto; }
+.admin-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 8% 5%, rgba(18,184,196,.11), transparent 25%),
+    radial-gradient(circle at 95% 90%, rgba(109,93,252,.10), transparent 30%),
+    var(--slate-100);
+}
+.admin-shell { padding: 42px 0 70px; }
+.admin-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 28px; }
+.admin-header h1 { margin-bottom: 4px; font-size: 2rem; }
+.admin-header p { margin: 0; }
+.admin-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 28px; }
+.admin-stat { padding: 22px; border: 1px solid var(--slate-200); border-radius: 16px; background: linear-gradient(145deg, #fff, #f8f6ff); box-shadow: var(--shadow-sm); }
+.admin-stat span { color: var(--slate-500); font-size: .85rem; }
+.admin-stat strong { display: block; margin-top: 6px; color: var(--blue-800); font-size: 1.8rem; }
+.admin-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+.tab-button { padding: 10px 15px; border: 1px solid var(--slate-200); border-radius: 9px; color: var(--slate-700); background: var(--white); cursor: pointer; font-weight: 750; }
+.tab-button.active { color: var(--white); border-color: var(--blue-600); background: linear-gradient(135deg, var(--blue-600), var(--blue-800)); box-shadow: 0 8px 18px rgba(79,70,229,.2); }
+.table-card { overflow: hidden; border: 1px solid var(--slate-200); border-radius: 14px; background: var(--white); }
+.table-scroll { overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; font-size: .87rem; }
+.data-table th, .data-table td { padding: 14px 16px; border-bottom: 1px solid var(--slate-200); text-align: left; white-space: nowrap; }
+.data-table th { color: var(--blue-950); background: linear-gradient(135deg, var(--blue-50), var(--cyan-soft)); font-size: .76rem; letter-spacing: .04em; text-transform: uppercase; }
+.data-table tbody tr:hover { background: #faf9ff; }
+.data-table td { color: var(--slate-700); }
+.data-table tr:last-child td { border-bottom: 0; }
+.tab-panel[hidden], .admin-dashboard[hidden], .admin-login[hidden] { display: none; }
+@media (max-width: 700px) {
+  .form-shell { padding: 24px 19px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-group.full { grid-column: auto; }
+  .admin-header { align-items: flex-start; flex-direction: column; }
+  .admin-stats { grid-template-columns: 1fr; }
+}
