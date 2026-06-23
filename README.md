@@ -13,13 +13,7 @@ nova-tutor-academy/
     ├── server.js     → Express entry point
     └── .env          → secret credentials
 
-## Setup Steps
 
-### 1. Backend setup
-cd nova-tutor-academy/backend
-npm install
-# Fill in your .env file
-node server.js
 
 ### 2. Frontend
 Just open frontend/pages/index.html in your browser.
