@@ -11,6 +11,7 @@ const { verifyMailer, mailEnabled } = require("./config/mailer");
 const studentRoutes = require("./routes/studentRoutes");
 const teacherRoutes = require("./routes/teacherRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const facultyRoutes = require("./routes/facultyRoutes");
 
 const app = express();
 const PORT = Number(process.env.PORT || 5000);
@@ -44,6 +45,7 @@ app.use(express.urlencoded({ extended: false, limit: "100kb" }));
 app.use("/api/students", studentRoutes);
 app.use("/api/teachers", teacherRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/faculty", facultyRoutes);
 
 app.get("/api/health", async (req, res) => {
   try {

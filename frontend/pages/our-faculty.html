@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Meet the experienced faculty members at Nova Tutor Academy.">
+  <title>Our Faculty | Nova Tutor Academy</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/navbar.css">
+  <link rel="stylesheet" href="../css/cards.css">
+  <link rel="stylesheet" href="../css/faculty.css">
+  <script src="../js/navbar.js" defer></script>
+  <script src="../js/faculty.js" defer></script>
+</head>
+<body>
+  <div data-site-header></div>
+  <main>
+    <section class="page-hero faculty-hero">
+      <div class="container">
+        <span class="eyebrow">Our Faculty</span>
+        <h1>Meet the tutors behind better learning.</h1>
+        <p>Experienced, approachable teachers selected for strong subject knowledge, clear communication, and genuine care for student progress.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="faculty-intro">
+          <div>
+            <span class="eyebrow">Trusted teachers</span>
+            <h2>Qualified faculty for focused one-to-one support</h2>
+            <p class="lead">Browse a few of our featured tutors. Each profile highlights their name, qualification, experience, and teaching strengths.</p>
+          </div>
+          <label class="faculty-search">
+            <span>Search faculty</span>
+            <input id="facultySearch" type="search" placeholder="Search by name, subject, city...">
+          </label>
+        </div>
+
+        <div class="faculty-toolbar" aria-live="polite">
+          <p id="facultyStatus">Loading faculty profiles...</p>
+        </div>
+
+        <div class="faculty-grid" id="facultyGrid"></div>
+      </div>
+    </section>
+
+    <section class="section section-soft">
+      <div class="container split">
+        <div>
+          <span class="eyebrow">How we select</span>
+          <h2>Faculty chosen for more than marks</h2>
+          <p class="lead">A good tutor explains clearly, notices where a student is stuck, and keeps lessons encouraging without losing structure.</p>
+          <ul class="check-list">
+            <li>Strong academic background and subject command</li>
+            <li>Experience with school, college, and international curricula</li>
+            <li>Friendly communication with students and parents</li>
+          </ul>
+          <a class="btn btn-primary" href="request-tutor.html">Request a tutor</a>
+        </div>
+        <div class="faculty-highlight" aria-hidden="true">
+          <div class="highlight-card">
+            <span class="highlight-number">6+</span>
+            <span>featured faculty profiles</span>
+          </div>
+          <div class="highlight-card">
+            <span class="highlight-number">20+</span>
+            <span>subjects covered</span>
+          </div>
+          <div class="highlight-card">
+            <span class="highlight-number">1:1</span>
+            <span>personal teaching support</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div data-site-footer></div>
+</body>
+</html>
