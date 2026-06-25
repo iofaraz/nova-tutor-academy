@@ -1,0 +1,154 @@
+const basePath = "/frontend/pages/";
+
+const HEADER_HTML = `
+<header class="site-header" id="siteHeader">
+  <div class="container nav-inner">
+    <a class="nav-brand" href="/frontend/index.html" aria-label="Nova Tutor Academy home">
+      <img src="/frontend/assets/brand identity.png" alt="Nova Tutor Academy">
+    </a>
+
+    <div class="nav-menu" id="navMenu">
+      <ul class="nav-links">
+        <li><a href="/frontend/index.html">Home</a></li>
+        <li class="has-dropdown">
+          <a href="#">Services<i class="fa-solid fa-angle-down" style="margin-left:4px"></i></a>
+          <ul class="dropdown-menu">
+            <li><a href="${basePath}home-tutor.html">Home tutoring</a></li>
+            <li><a href="${basePath}online-tutor.html">Online tutoring</a></li>
+            <li><a href="${basePath}international-tutor.html">International tutoring</a></li>
+          </ul>
+        </li>
+        <li><a href="${basePath}our-faculty.html">Faculty</a></li>
+        <li><a href="${basePath}about.html">About</a></li>
+        <li><a href="${basePath}contact.html">Contact</a></li>
+      </ul>
+    </div>
+    <div class="nav-actions">
+      <a class="btn btn-secondary" href="${basePath}teach-with-us.html">Register as Tutor</a>
+      <a class="btn btn-primary" href="${basePath}request-tutor.html">Find a Tutor</a>
+    </div>
+
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navMenu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>`;
+
+const FOOTER_HTML = `
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a class="nav-brand" href="/frontend/index.html" aria-label="Nova Tutor Academy home">
+          <img src="/frontend/assets/brand identity.png" alt="Nova Tutor Academy">
+        </a>
+        <p>Connecting students with trusted tutors across Islamabad, Rawalpindi, Lahore, and Karachi — and online worldwide.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Subjects</h4>
+        <ul>
+          <li><a href="${basePath}request-tutor.html">Mathematics</a></li>
+          <li><a href="${basePath}request-tutor.html">Physics</a></li>
+          <li><a href="${basePath}request-tutor.html">Chemistry</a></li>
+          <li><a href="${basePath}request-tutor.html">Computer Science</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>For Students</h4>
+        <ul>
+          <li><a href="${basePath}request-tutor.html">Search Tutors</a></li>
+          <li><a href="${basePath}contact.html">Contact Us</a></li>
+          <li><a href="${basePath}our-faculty.html">Our Faculty</a></li>
+          <li><a href="${basePath}online-tutor.html">Online Tutoring</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="${basePath}about.html">About Us</a></li>
+          <li><a href="${basePath}teach-with-us.html">Register as Tutor</a></li>
+          <li><a href="${basePath}contact.html">Contact Us</a></li>
+          <li><a href="tel:+923001234567">+92 300 1234567</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© ${new Date().getFullYear()} Nova Tutor Academy. All rights reserved.</span>
+      <span>Islamabad · Rawalpindi · Lahore · Karachi</span>
+    </div>
+  </div>
+</footer>`;
+
+document.querySelectorAll("[data-site-header]").forEach((element) => {
+  element.outerHTML = HEADER_HTML;
+});
+
+document.querySelectorAll("[data-site-footer]").forEach((element) => {
+  element.outerHTML = FOOTER_HTML;
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const toggle = document.getElementById("navToggle");
+  const menu = document.getElementById("navMenu");
+
+  function closeMenu() {
+    if (!toggle || !menu) return;
+    menu.classList.remove("open");
+    toggle.setAttribute("aria-expanded", "false");
+    document.body.style.overflow = "";
+  }
+
+  if (toggle && menu) {
+    toggle.addEventListener("click", () => {
+      const isOpen = menu.classList.toggle("open");
+      toggle.setAttribute("aria-expanded", String(isOpen));
+      document.body.style.overflow = isOpen ? "hidden" : "";
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!toggle.contains(event.target) && !menu.contains(event.target)) {
+        closeMenu();
+      }
+    });
+
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 980) closeMenu();
+    });
+  }
+
+  const current = location.pathname.split("/").pop() || "index.html";
+  document.querySelectorAll(".nav-links a").forEach((link) => {
+    let href = link.getAttribute("href");
+    if (!href || href === "#") return;
+
+    if (href.startsWith(basePath)) {
+      href = href.slice(basePath.length);
+    }
+
+    if (current === href) {
+      link.classList.add("active");
+    }
+  });
+
+  const backToTop = document.createElement("button");
+  backToTop.type = "button";
+  backToTop.className = "back-to-top";
+  backToTop.setAttribute("aria-label", "Scroll back to top");
+  backToTop.innerHTML = "↑";
+  document.body.appendChild(backToTop);
+
+  const updateBackToTop = () => {
+    if (window.scrollY > 360) {
+      backToTop.classList.add("show");
+    } else {
+      backToTop.classList.remove("show");
+    }
+  };
+
+  backToTop.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  window.addEventListener("scroll", updateBackToTop, { passive: true });
+  updateBackToTop();
+});

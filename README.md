@@ -1,24 +1,71 @@
 # Nova Tutor Academy
 
-## Project Structure
+## 📁 Project Structure
+
+```text
 nova-tutor-academy/
+│
 ├── frontend/
-│   ├── pages/        → all HTML pages
-│   ├── css/          → stylesheets
-│   ├── js/           → JavaScript files
-│   └── assets/       → images, icons
+│   ├── pages/          # HTML pages
+│   ├── css/            # Stylesheets
+│   ├── js/             # JavaScript files
+│   ├── assets/         # Images, icons, and static assets
+|   └── index.html
+│
 └── backend/
-    ├── routes/       → API endpoints
-    ├── config/       → DB and mailer setup
-    ├── server.js     → Express entry point
-    └── .env          → secret credentials
+    ├── routes/         # API routes and endpoints
+    ├── config/         # Database and mail configuration
+    ├── server.js       # Express application entry point
+    └── .env            # Environment variables (not included in version control)
+```
 
+---
 
+## 🚀 Getting Started
 
-### 2. Frontend
-Just open frontend/pages/index.html in your browser.
-No install needed.
+### Frontend
 
-### 3. Database
-Create a MySQL database named: nova_tutor_db
-Then run the SQL from db-setup.sql to create tables.
+No installation is required for the frontend.
+
+1. Navigate to the `frontend` directory.
+2. Open `index.html` in your preferred web browser.
+
+```text
+frontend/index.html
+```
+
+---
+
+### Database Setup
+
+1. Create a MySQL database named:
+
+```sql
+CREATE DATABASE nova_tutor_db;
+```
+
+2. Import and execute the SQL script provided in `db-setup.sql` to create the required tables and initial database structure.
+
+---
+
+## 🛠 Backend Configuration
+
+1. Configure your environment variables in the `.env` file.
+2. Update database credentials and other required settings.
+3. Start the Express server using `server.js`.
+
+---
+
+## 📌 Tech Stack
+
+- Frontend: HTML, CSS, JavaScript
+- Backend: Node.js, Express.js
+- Database: MySQL
+
+---
+
+## 📄 Notes
+
+- Ensure MySQL is running before starting the backend server.
+- Keep the `.env` file private and never commit it to version control.
+- Verify database credentials match your local environment configuration.

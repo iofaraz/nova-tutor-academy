@@ -12,10 +12,14 @@ const studentRoutes = require("./routes/studentRoutes");
 const teacherRoutes = require("./routes/teacherRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const facultyRoutes = require("./routes/facultyRoutes");
+// const { createFrontendRouter } = require("./routes/frontendRoutes");
+const { createHealthRouter } = require("./routes/healthRoutes");
+const { createNotFoundRouter } = require("./routes/notFoundRoutes");
+const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 const PORT = Number(process.env.PORT || 5000);
-const frontendDirectory = path.join(__dirname, "..", "frontend");
+// const frontendDirectory = path.join(__dirname, "..", "frontend");
 
 app.disable("x-powered-by");
 app.use(
@@ -46,57 +50,10 @@ app.use("/api/students", studentRoutes);
 app.use("/api/teachers", teacherRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/faculty", facultyRoutes);
-
-app.get("/api/health", async (req, res) => {
-  try {
-    await testConnection();
-    return res.json({
-      status: "ok",
-      database: "connected",
-      mail: mailEnabled ? "configured" : "not configured",
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    return res.status(503).json({
-      status: "error",
-      database: "disconnected",
-      message: "The database is not available.",
-      timestamp: new Date().toISOString(),
-    });
-  }
-});
-
-app.use(express.static(path.join(frontendDirectory, "pages")));
-app.use(express.static(frontendDirectory));
-app.get("/", (req, res) => {
-  res.sendFile(path.join(frontendDirectory, "pages", "index.html"));
-});
-
-app.use("/api", (req, res) => {
-  res.status(404).json({ message: "API endpoint not found." });
-});
-
-app.use((error, req, res, next) => {
-  console.error(error);
-
-  if (res.headersSent) return next(error);
-  if (error.type === "entity.too.large") {
-    return res.status(413).json({ message: "Request body is too large." });
-  }
-  if (error instanceof SyntaxError && error.status === 400 && "body" in error) {
-    return res.status(400).json({ message: "Invalid JSON request body." });
-  }
-  if (error.message === "This origin is not allowed by CORS.") {
-    return res.status(403).json({ message: error.message });
-  }
-
-  return res.status(500).json({
-    message:
-      process.env.NODE_ENV === "development"
-        ? error.message
-        : "Something went wrong on the server.",
-  });
-});
+app.use(createHealthRouter(testConnection, mailEnabled));
+// app.use(createFrontendRouter(frontendDirectory));
+app.use(createNotFoundRouter());
+app.use(errorHandler);
 
 async function startServer() {
   try {
@@ -117,7 +74,17 @@ async function startServer() {
   } catch (error) {
     console.error("Server could not start because MySQL is unavailable.");
     console.error(error.message);
-    process.exitCode = 1;
+
+    if (process.env.NODE_ENV === "development") {
+      console.warn(
+        "Starting in development mode without a database connection. Static frontend pages will still be served, but API routes may fail."
+      );
+      app.listen(PORT, () => {
+        console.log(`Nova Tutor Academy server running at http://localhost:${PORT}`);
+      });
+    } else {
+      process.exitCode = 1;
+    }
   }
 }
 

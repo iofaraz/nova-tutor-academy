@@ -1,2 +1,110 @@
+# =========================
+# Dependencies
+# =========================
 node_modules/
+
+# =========================
+# Environment Variables
+# =========================
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# =========================
+# Logs
+# =========================
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# Build Files
+# =========================
+build/
+dist/
+
+# React / Vite
+.vite/
+vite.svg
+
+# Next.js (if applicable)
+.next/
+out/
+
+# =========================
+# Coverage
+# =========================
+coverage/
+.nyc_output/
+
+# =========================
+# Cache
+# =========================
+.cache/
+.parcel-cache/
+.eslintcache
+
+# =========================
+# IDEs & Editors
+# =========================
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# MongoDB
+# =========================
+data/
+*.wt
+*.ns
+
+# =========================
+# Temporary Files
+# =========================
+tmp/
+temp/
+*.tmp
+
+# =========================
+# Runtime Files
+# =========================
+pids
+*.pid
+*.pid.lock
+
+# =========================
+# Uploads (optional)
+# Uncomment if user-uploaded files
+# should not be tracked
+# =========================
+# uploads/
+# public/uploads/
+
+# =========================
+# Testing
+# =========================
+jest-results/
+junit.xml
+
+# =========================
+# Secrets & Certificates
+# =========================
+*.pem
+*.key
+*.crt
