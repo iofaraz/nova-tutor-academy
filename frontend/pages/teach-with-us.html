@@ -1,61 +1,210 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Apply to teach with Nova Tutor Academy.">
-  <title>Teach With Us | Nova Tutor Academy</title>
-  <link rel="stylesheet" href="../css/style.css"><link rel="stylesheet" href="../css/navbar.css"><link rel="stylesheet" href="../css/forms.css"><link rel="stylesheet" href="../css/cards.css">
-  <script src="../js/navbar.js" defer></script><script src="../js/teacher-form.js" defer></script>
-</head>
-<body>
-  <div data-site-header></div>
-  <main>
-    <section class="page-hero"><div class="container">
-      <span class="eyebrow">Teach with Nova</span>
-      <h1>Bring your knowledge. Make it meaningful.</h1>
-      <p>Join a growing tutor network and help students build the skills and confidence to move forward.</p>
-    </div></section>
-
-    <section class="section"><div class="container">
-      <div class="section-heading"><span class="eyebrow">Why join us?</span><h2>Teach with flexibility and purpose</h2></div>
-      <div class="card-grid">
-        <article class="card"><span class="card-icon">⌁</span><h3>Relevant opportunities</h3><p>Receive student requests that align with your subjects, level, location, and availability.</p></article>
-        <article class="card"><span class="card-icon">◷</span><h3>Flexible scheduling</h3><p>Offer home or online lessons and agree on timings that work for you and the student.</p></article>
-        <article class="card"><span class="card-icon">◇</span><h3>Meaningful work</h3><p>Use your expertise to make difficult ideas clearer and help learners become more independent.</p></article>
-      </div>
-    </div></section>
-
-    <section class="section section-soft"><div class="container detail-grid">
-      <div>
-        <span class="eyebrow">Who we’re looking for</span><h2>Teachers who know and care</h2>
-        <p class="lead">We welcome experienced teachers, subject specialists, graduates, and capable university students with strong communication skills.</p>
-        <ul class="check-list">
-          <li>Good command of the subjects you teach</li>
-          <li>Clear, patient, and respectful communication</li>
-          <li>Reliability and professional conduct</li>
-          <li>A genuine interest in helping students improve</li>
-        </ul>
-        <p class="notice">Submitting an application does not guarantee placement. Profiles are reviewed before suitable opportunities are shared.</p>
-      </div>
-
-      <form class="form-shell" id="teacherApplicationForm">
-        <h2>Tutor application</h2><p class="form-intro">Introduce yourself and your teaching experience.</p>
-        <div class="form-grid">
-          <div class="form-group"><label for="name">Full name <span class="required">*</span></label><input class="form-control" id="name" name="name" required maxlength="100" autocomplete="name"></div>
-          <div class="form-group"><label for="phone">Phone number <span class="required">*</span></label><input class="form-control" id="phone" name="phone" type="tel" required maxlength="20" autocomplete="tel" placeholder="+92 3XX XXXXXXX"></div>
-          <div class="form-group full"><label for="email">Email address</label><input class="form-control" id="email" name="email" type="email" maxlength="150" autocomplete="email"></div>
-          <div class="form-group"><label for="city">City <span class="required">*</span></label><select class="form-control" id="city" name="city" required><option value="">Select city</option><option>Islamabad/Rawalpindi</option><option>Lahore</option><option>Karachi</option></select></div>
-          <div class="form-group"><label for="experience_years">Years of experience</label><input class="form-control" id="experience_years" name="experience_years" type="number" min="0" max="60" placeholder="0"></div>
-          <div class="form-group full"><label for="qualification">Highest qualification <span class="required">*</span></label><input class="form-control" id="qualification" name="qualification" required maxlength="200" placeholder="Degree, institution, and major"></div>
-          <div class="form-group full"><label for="subjects">Subjects and levels <span class="required">*</span></label><textarea class="form-control" id="subjects" name="subjects" required placeholder="e.g. Mathematics for O Level and A Level"></textarea></div>
-          <div class="form-group full"><label for="availability">Availability <span class="required">*</span></label><input class="form-control" id="availability" name="availability" required maxlength="100" placeholder="e.g. Weekdays after 4 PM, weekends"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Apply to teach with Nova Tutor Academy."
+    />
+      <link rel="shortcut icon" href="../assets/logo.png" type="image/png">
+    <title>Teach With Us | Nova Tutor Academy</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/navbar.css" />
+    <link rel="stylesheet" href="../css/forms.css" />
+    <link rel="stylesheet" href="../css/cards.css" />
+    <script src="../js/common.js" defer></script>
+    <script src="../js/teacher-form.js" defer></script>
+  </head>
+  <body>
+    <div data-site-header></div>
+    <main>
+      <section class="page-hero">
+        <div class="container">
+          <span class="eyebrow">Teach with Nova</span>
+          <h1>Bring your Knowledge. Make it Meaningful.</h1>
+          <p>
+            Join a growing tutor network and help students build the skills and
+            confidence to move forward.
+          </p>
         </div>
-        <div class="form-actions"><button class="btn btn-primary submit-button" type="submit">Submit application</button></div>
-        <div class="form-status" id="teacherFormStatus" role="status" aria-live="polite"></div>
-      </form>
-    </div></section>
-  </main>
-  <div data-site-footer></div>
-</body>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-heading">
+            <span class="eyebrow">Why join us?</span>
+            <h2>Teach with Flexibility and Purpose</h2>
+          </div>
+          <div class="card-grid">
+            <article class="card">
+              <span class="card-icon"><i class="fa-solid fa-splotch"></i></span>
+              <h3>Relevant Opportunities</h3>
+              <p>
+                Receive student requests that align with your subjects, level,
+                location, and availability.
+              </p>
+            </article>
+            <article class="card">
+              <span class="card-icon"><i class="fa-solid fa-clock" ></i></span>
+              <h3>Flexible Scheduling</h3>
+              <p>
+                Offer home or online lessons and agree on timings that work for
+                you and the student.
+              </p>
+            </article>
+            <article class="card">
+              <span class="card-icon"><i class="fa-solid fa-briefcase"></i></span>
+              <h3>Meaningful Work</h3>
+              <p>
+                Use your expertise to make difficult ideas clearer and help
+                learners become more independent.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-soft">
+        <div class="container detail-grid">
+          <div>
+            <span class="eyebrow">Who we’re looking for</span>
+            <h2>Teachers who know and care</h2>
+            <p class="lead">
+              We welcome experienced teachers, subject specialists, graduates,
+              and capable university students with strong communication skills.
+            </p>
+            <ul class="check-list">
+              <li>Good command of the subjects you teach</li>
+              <li>Clear, patient, and respectful communication</li>
+              <li>Reliability and professional conduct</li>
+              <li>A genuine interest in helping students improve</li>
+            </ul>
+            <p class="notice">
+              Submitting an application does not guarantee placement. Profiles
+              are reviewed before suitable opportunities are shared.
+            </p>
+          </div>
+
+          <form class="form-shell" id="teacherApplicationForm">
+            <h2>Tutor application</h2>
+            <p class="form-intro">
+              Introduce yourself and your teaching experience.
+            </p>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="name"
+                  >Full Name <span class="required">*</span></label
+                ><input
+                  class="form-control"
+                  id="name"
+                  name="name"
+                  required
+                  maxlength="100"
+                  autocomplete="name"
+                />
+              </div>
+              <div class="form-group">
+                <label for="phone"
+                  >Phone Number <span class="required">*</span></label
+                ><input
+                  class="form-control"
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  required
+                  maxlength="20"
+                  autocomplete="tel"
+                  placeholder="+92 3XX XXXXXXX"
+                />
+              </div>
+              <div class="form-group full">
+                <label for="email">Email Address</label
+                ><input
+                  class="form-control"
+                  id="email"
+                  name="email"
+                  type="email"
+                  maxlength="150"
+                  autocomplete="email"
+                />
+              </div>
+              <div class="form-group">
+                <label for="city">City <span class="required">*</span></label
+                ><select class="form-control" id="city" name="city" required>
+                  <option value="">Select city</option>
+                  <option>Islamabad/Rawalpindi</option>
+                  <option>Lahore</option>
+                  <option>Karachi</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="experience_years">Years of Experience</label
+                ><input
+                  class="form-control"
+                  id="experience_years"
+                  name="experience_years"
+                  type="number"
+                  min="0"
+                  max="60"
+                  placeholder="0"
+                />
+              </div>
+              <div class="form-group full">
+                <label for="qualification"
+                  >Highest Qualification <span class="required">*</span></label
+                ><input
+                  class="form-control"
+                  id="qualification"
+                  name="qualification"
+                  required
+                  maxlength="200"
+                  placeholder="Degree, institution, and major"
+                />
+              </div>
+              <div class="form-group full">
+                <label for="subjects"
+                  >Subjects and Levels <span class="required">*</span></label
+                ><textarea
+                  class="form-control"
+                  id="subjects"
+                  name="subjects"
+                  required
+                  placeholder="e.g. Mathematics for O Level and A Level"
+                ></textarea>
+              </div>
+              <div class="form-group full">
+                <label for="availability"
+                  >Availability <span class="required">*</span></label
+                ><input
+                  class="form-control"
+                  id="availability"
+                  name="availability"
+                  required
+                  maxlength="100"
+                  placeholder="e.g. Weekdays after 4 PM, weekends"
+                />
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary submit-button" type="submit">
+                Submit Application
+              </button>
+            </div>
+            <div
+              class="form-status"
+              id="teacherFormStatus"
+              role="status"
+              aria-live="polite"
+            ></div>
+          </form>
+        </div>
+      </section>
+    </main>
+    <div data-site-footer></div>
+    <script
+      src="https://kit.fontawesome.com/b7d2e68c15.js"
+      crossorigin="anonymous"
+    ></script>
+  </body>
 </html>

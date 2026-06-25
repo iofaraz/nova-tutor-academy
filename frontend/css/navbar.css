@@ -27,27 +27,6 @@
   gap: 24px;
 }
 
-.nav-brand,
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--blue-950);
-  font-weight: 900;
-  letter-spacing: -.02em;
-}
-
-.brand-mark {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  place-items: center;
-  border-radius: 12px;
-  color: var(--white);
-  background: linear-gradient(145deg, var(--blue-600), var(--cyan));
-  box-shadow: 0 10px 22px rgba(79, 70, 229, .22);
-}
-
 .nav-menu {
   display: flex;
   align-items: center;
@@ -57,7 +36,7 @@
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -84,20 +63,17 @@
   position: relative;
 }
 
-.has-dropdown > a::after {
-  margin-left: 5px;
-  content: "▾";
-  font-size: .72rem;
+.nav-brand img {
+  width: 180px;
 }
 
 .dropdown-menu {
   position: absolute;
-  top: calc(100% + 10px);
+  top: 100%;
   left: 0;
   z-index: 10;
   display: none;
   min-width: 220px;
-  padding: 8px;
   border: 1px solid var(--slate-200);
   border-radius: 16px;
   background: var(--white);
@@ -111,7 +87,6 @@
 }
 
 .dropdown-menu a {
-  border-radius: 12px;
   padding: 10px 12px;
 }
 

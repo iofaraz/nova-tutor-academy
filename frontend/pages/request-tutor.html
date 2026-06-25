@@ -1,54 +1,205 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Request a home, online, or international tutor from Nova Tutor Academy.">
-  <title>Request a Tutor | Nova Tutor Academy</title>
-  <link rel="stylesheet" href="../css/style.css"><link rel="stylesheet" href="../css/navbar.css"><link rel="stylesheet" href="../css/forms.css">
-  <script src="../js/navbar.js" defer></script><script src="../js/student-form.js" defer></script>
-</head>
-<body>
-  <div data-site-header></div>
-  <main>
-    <section class="page-hero"><div class="container">
-      <span class="eyebrow">Request a tutor</span>
-      <h1>Tell us what the student needs.</h1>
-      <p>Complete the short form below. We’ll use your details to identify tutors who fit the subject, level, location, and schedule.</p>
-    </div></section>
-
-    <section class="section section-soft"><div class="container detail-grid">
-      <div>
-        <span class="eyebrow">A better match starts here</span>
-        <h2>Share as much detail as you can</h2>
-        <p class="lead">You do not need to know exactly what kind of tutor to choose. Tell us the learning goal and we’ll help from there.</p>
-        <div class="info-panel">
-          <div class="info-row"><span class="info-icon">1</span><div><h3>Submit your request</h3><p>This usually takes less than three minutes.</p></div></div>
-          <div class="info-row"><span class="info-icon">2</span><div><h3>We review the details</h3><p>Our team checks subject, level, location, and availability.</p></div></div>
-          <div class="info-row"><span class="info-icon">3</span><div><h3>Discuss suitable options</h3><p>We contact you with next steps and potential tutor matches.</p></div></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Request a home, online, or international tutor from Nova Tutor Academy."
+    />
+    <link rel="shortcut icon" href="../assets/logo.png" type="image/png" />
+    <title>Request a Tutor | Nova Tutor Academy</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/navbar.css" />
+    <link rel="stylesheet" href="../css/forms.css" />
+    <script src="../js/common.js" defer></script>
+    <script src="../js/student-form.js" defer></script>
+  </head>
+  <body>
+    <div data-site-header></div>
+    <main>
+      <section class="page-hero">
+        <div class="container">
+          <span class="eyebrow">Request a tutor</span>
+          <h1>Tell us What the Student Needs.</h1>
+          <p>
+            Complete the short form below. We’ll use your details to identify
+            tutors who fit the subject, level, location, and schedule.
+          </p>
         </div>
-        <p class="notice" style="margin-top:18px">Your contact details are used only to respond to this tutoring request.</p>
-      </div>
+      </section>
 
-      <form class="form-shell" id="studentRequestForm">
-        <h2>Student requirements</h2>
-        <p class="form-intro">Fields marked with * are required.</p>
-        <div class="form-grid">
-          <div class="form-group"><label for="name">Parent/student name <span class="required">*</span></label><input class="form-control" id="name" name="name" required maxlength="100" autocomplete="name" placeholder="Full name"></div>
-          <div class="form-group"><label for="phone">Phone number <span class="required">*</span></label><input class="form-control" id="phone" name="phone" type="tel" required maxlength="20" autocomplete="tel" placeholder="+92 3XX XXXXXXX"></div>
-          <div class="form-group full"><label for="email">Email address</label><input class="form-control" id="email" name="email" type="email" maxlength="150" autocomplete="email" placeholder="name@example.com"></div>
-          <div class="form-group"><label for="city">City <span class="required">*</span></label><select class="form-control" id="city" name="city" required><option value="">Select city</option><option>Islamabad/Rawalpindi</option><option>Lahore</option><option>Karachi</option></select></div>
-          <div class="form-group"><label for="tutor_type">Tutor type <span class="required">*</span></label><select class="form-control" id="tutor_type" name="tutor_type" required><option value="">Select type</option><option>Home</option><option>Online</option><option>International</option></select></div>
-          <div class="form-group"><label for="class_level">Class or level <span class="required">*</span></label><input class="form-control" id="class_level" name="class_level" required maxlength="50" placeholder="e.g. Grade 8, O Level"></div>
-          <div class="form-group"><label for="curriculum">Curriculum</label><input class="form-control" id="curriculum" name="curriculum" maxlength="100" placeholder="e.g. Cambridge, Matric"></div>
-          <div class="form-group full"><label for="subjects">Subjects <span class="required">*</span></label><input class="form-control" id="subjects" name="subjects" required placeholder="e.g. Mathematics, Physics"></div>
-          <div class="form-group full"><label for="notes">Schedule and other details</label><textarea class="form-control" id="notes" name="notes" placeholder="Preferred days/times, learning goals, location, exam date, or anything else we should know"></textarea></div>
+      <section class="section section-soft">
+        <div class="container detail-grid">
+          <div>
+            <span class="eyebrow">A better match starts here</span>
+            <h2>Share as much detail as you can</h2>
+            <p class="lead">
+              You do not need to know exactly what kind of tutor to choose. Tell
+              us the learning goal and we’ll help from there.
+            </p>
+            <div class="info-panel">
+              <div class="info-row">
+                <span class="info-icon">1</span>
+                <div>
+                  <h3>Submit your request</h3>
+                  <p>This usually takes less than three minutes.</p>
+                </div>
+              </div>
+              <div class="info-row">
+                <span class="info-icon">2</span>
+                <div>
+                  <h3>We review the details</h3>
+                  <p>
+                    Our team checks subject, level, location, and availability.
+                  </p>
+                </div>
+              </div>
+              <div class="info-row">
+                <span class="info-icon">3</span>
+                <div>
+                  <h3>Discuss suitable options</h3>
+                  <p>
+                    We contact you with next steps and potential tutor matches.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <p class="notice" style="margin-top: 18px">
+              Your contact details are used only to respond to this tutoring
+              request.
+            </p>
+          </div>
+
+          <form class="form-shell" id="studentRequestForm">
+            <h2>Student requirements</h2>
+            <p class="form-intro">Fields marked with * are required.</p>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="name"
+                  >Student name <span class="required">*</span></label
+                ><input
+                  class="form-control"
+                  id="name"
+                  name="name"
+                  required
+                  maxlength="100"
+                  autocomplete="name"
+                  placeholder="Full name"
+                />
+              </div>
+              <div class="form-group">
+                <label for="phone"
+                  >Phone Number <span class="required">*</span></label
+                ><input
+                  class="form-control"
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  required
+                  maxlength="20"
+                  autocomplete="tel"
+                  placeholder="+92 3XX XXXXXXX"
+                />
+              </div>
+              <div class="form-group full">
+                <label for="email">Email Address</label
+                ><input
+                  class="form-control"
+                  id="email"
+                  name="email"
+                  type="email"
+                  maxlength="150"
+                  autocomplete="email"
+                  placeholder="name@example.com"
+                />
+              </div>
+              <div class="form-group">
+                <label for="city">City <span class="required">*</span></label
+                ><select class="form-control" id="city" name="city" required>
+                  <option value="">Select city</option>
+                  <option>Islamabad/Rawalpindi</option>
+                  <option>Lahore</option>
+                  <option>Karachi</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="tutor_type"
+                  >Tutor Type <span class="required">*</span></label
+                ><select
+                  class="form-control"
+                  id="tutor_type"
+                  name="tutor_type"
+                  required
+                >
+                  <option value="">Select Type</option>
+                  <option>Home</option>
+                  <option>Online</option>
+                  <option>International</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="class_level"
+                  >Class or Level <span class="required">*</span></label
+                ><input
+                  class="form-control"
+                  id="class_level"
+                  name="class_level"
+                  required
+                  maxlength="50"
+                  placeholder="e.g. Grade 8, O Level"
+                />
+              </div>
+              <div class="form-group">
+                <label for="curriculum">Curriculum</label
+                ><input
+                  class="form-control"
+                  id="curriculum"
+                  name="curriculum"
+                  maxlength="100"
+                  placeholder="e.g. Cambridge, Matric"
+                />
+              </div>
+              <div class="form-group full">
+                <label for="subjects"
+                  >Subjects <span class="required">*</span></label
+                ><input
+                  class="form-control"
+                  id="subjects"
+                  name="subjects"
+                  required
+                  placeholder="e.g. Mathematics, Physics"
+                />
+              </div>
+              <div class="form-group full">
+                <label for="notes">Schedule and Other Details</label
+                ><textarea
+                  class="form-control"
+                  id="notes"
+                  name="notes"
+                  placeholder="Preferred days/times, learning goals, location, exam date, or anything else we should know"
+                ></textarea>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary submit-button" type="submit">
+                Submit Tutor Request
+              </button>
+            </div>
+            <div
+              class="form-status"
+              id="studentFormStatus"
+              role="status"
+              aria-live="polite"
+            ></div>
+          </form>
         </div>
-        <div class="form-actions"><button class="btn btn-primary submit-button" type="submit">Submit tutor request</button></div>
-        <div class="form-status" id="studentFormStatus" role="status" aria-live="polite"></div>
-      </form>
-    </div></section>
-  </main>
-  <div data-site-footer></div>
-</body>
+      </section>
+    </main>
+    <div data-site-footer></div>
+    <script
+      src="https://kit.fontawesome.com/b7d2e68c15.js"
+      crossorigin="anonymous"
+    ></script>
+  </body>
 </html>

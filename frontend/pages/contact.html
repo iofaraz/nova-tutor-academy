@@ -1,54 +1,150 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Contact Nova Tutor Academy for tutoring support.">
-  <title>Contact | Nova Tutor Academy</title>
-  <link rel="stylesheet" href="../css/style.css">
-  <link rel="stylesheet" href="../css/navbar.css">
-  <link rel="stylesheet" href="../css/forms.css">
-  <script src="../js/navbar.js" defer></script>
-</head>
-<body>
-  <div data-site-header></div>
-  <main>
-    <section class="page-hero">
-      <div class="container">
-        <span class="eyebrow">Contact us</span>
-        <h1>Questions? We’re here to help.</h1>
-        <p>Whether you need a tutor, want to teach, or simply need more information, reach out and our team will guide you.</p>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="container detail-grid">
-        <div>
-          <span class="eyebrow">Talk to our team</span>
-          <h2>Choose the easiest way to reach us</h2>
-          <p class="lead">We usually respond during business hours and will make sure your message reaches the right person.</p>
-          <div class="contact-list">
-            <a class="contact-item" href="tel:+923001234567"><span>☎</span><span><strong>Call or WhatsApp</strong><br>+92 300 1234567</span></a>
-            <a class="contact-item" href="mailto:hello@novatutoracademy.com"><span>✉</span><span><strong>Email us</strong><br>hello@novatutoracademy.com</span></a>
-            <div class="contact-item"><span>⌖</span><span><strong>Service areas</strong><br>Islamabad/Rawalpindi, Lahore, Karachi &amp; online</span></div>
-            <div class="contact-item"><span>◷</span><span><strong>Support hours</strong><br>Monday–Saturday, 9:00 AM–7:00 PM</span></div>
-          </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Contact Nova Tutor Academy for tutoring support."
+    />
+    <link rel="shortcut icon" href="../assets/logo.png" type="image/png" />
+    <title>Contact | Nova Tutor Academy</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/navbar.css" />
+    <link rel="stylesheet" href="../css/forms.css" />
+    <script src="../js/common.js" defer></script>
+  </head>
+  <body>
+    <div data-site-header></div>
+    <main>
+      <section class="page-hero">
+        <div class="container">
+          <span class="eyebrow">Contact us</span>
+          <h1>Questions? We’re Here to Help.</h1>
+          <p>
+            Whether you need a tutor, want to teach, or simply need more
+            information, reach out and our team will guide you.
+          </p>
         </div>
-        <form class="form-shell" action="mailto:hello@novatutoracademy.com" method="post" enctype="text/plain">
-          <h2>Send a message</h2>
-          <p class="form-intro">Share a few details and we’ll get back to you.</p>
-          <div class="form-grid">
-            <div class="form-group"><label for="contactName">Name <span class="required">*</span></label><input class="form-control" id="contactName" name="name" required autocomplete="name"></div>
-            <div class="form-group"><label for="contactPhone">Phone</label><input class="form-control" id="contactPhone" name="phone" type="tel" autocomplete="tel"></div>
-            <div class="form-group full"><label for="contactEmail">Email <span class="required">*</span></label><input class="form-control" id="contactEmail" name="email" type="email" required autocomplete="email"></div>
-            <div class="form-group full"><label for="contactTopic">I’m interested in</label><select class="form-control" id="contactTopic" name="topic"><option>Finding a tutor</option><option>Teaching with Nova</option><option>General information</option><option>Other</option></select></div>
-            <div class="form-group full"><label for="contactMessage">Message <span class="required">*</span></label><textarea class="form-control" id="contactMessage" name="message" required placeholder="How can we help?"></textarea></div>
+      </section>
+
+      <section class="section">
+        <div class="container detail-grid">
+          <div>
+            <span class="eyebrow">Talk to our team</span>
+            <h2>Choose the easiest way to reach us</h2>
+            <p class="lead">
+              We usually respond during business hours and will make sure your
+              message reaches the right person.
+            </p>
+            <div class="contact-list">
+              <a class="contact-item" href="tel:+923001234567"
+                ><span><i class="fa-solid fa-phone"></i></span
+                ><span
+                  ><strong>Call or WhatsApp</strong>+92 300 1234567</span
+                ></a
+              >
+              <a class="contact-item" href="mailto:hello@novatutoracademy.com"
+                ><span><i class="fa-solid fa-envelope"></i></span
+                ><span
+                  ><strong>Email us</strong
+                  >hello@novatutoracademy.com</span
+                ></a
+              >
+              <div class="contact-item">
+                <span><i class="fa-solid fa-location-dot"></i></span
+                ><span
+                  ><strong>Service areas</strong>Islamabad/Rawalpindi,
+                  Lahore, Karachi &amp; online</span
+                >
+              </div>
+              <div class="contact-item">
+                <span><i class="fa-regular fa-clock"></i></span
+                ><span
+                  ><strong>Support hours</strong>Monday–Saturday, 9:00
+                  AM–7:00 PM</span
+                >
+              </div>
+            </div>
           </div>
-          <div class="form-actions"><button class="btn btn-primary" type="submit">Send message</button></div>
-        </form>
-      </div>
-    </section>
-  </main>
-  <div data-site-footer></div>
-</body>
+          <form
+            class="form-shell"
+            action="mailto:hello@novatutoracademy.com"
+            method="post"
+            enctype="text/plain"
+          >
+            <h2>Send a message</h2>
+            <p class="form-intro">
+              Share a few details and we’ll get back to you.
+            </p>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="contactName"
+                  >Name <span class="required">*</span></label
+                ><input
+                  class="form-control"
+                  id="contactName"
+                  name="name"
+                  required
+                  autocomplete="name"
+                />
+              </div>
+              <div class="form-group">
+                <label for="contactPhone">Phone</label
+                ><input
+                  class="form-control"
+                  id="contactPhone"
+                  name="phone"
+                  type="tel"
+                  autocomplete="tel"
+                />
+              </div>
+              <div class="form-group full">
+                <label for="contactEmail"
+                  >Email <span class="required">*</span></label
+                ><input
+                  class="form-control"
+                  id="contactEmail"
+                  name="email"
+                  type="email"
+                  required
+                  autocomplete="email"
+                />
+              </div>
+              <div class="form-group full">
+                <label for="contactTopic">I’m interested in</label
+                ><select class="form-control" id="contactTopic" name="topic">
+                  <option>Finding a Tutor</option>
+                  <option>Teaching with Nova</option>
+                  <option>General Information</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="form-group full">
+                <label for="contactMessage"
+                  >Message <span class="required">*</span></label
+                ><textarea
+                  class="form-control"
+                  id="contactMessage"
+                  name="message"
+                  required
+                  placeholder="How can we help?"
+                ></textarea>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" type="submit">
+                Send message
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+    <div data-site-footer></div>
+    <script
+      src="https://kit.fontawesome.com/b7d2e68c15.js"
+      crossorigin="anonymous"
+    ></script>
+  </body>
 </html>

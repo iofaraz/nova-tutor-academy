@@ -25,7 +25,7 @@
   --success:     #22C55E;
   --error:       #EF4444;
 
-  --font-display: 'Playfair Display', Georgia, serif;
+  --font-display: system-ui, sans-serif;
   --font-body:    'Inter', system-ui, sans-serif;
 
   --radius-sm:   6px;
@@ -139,6 +139,38 @@ p.lead { font-size: 1.08rem; color: var(--text); line-height: 1.75; }
 
 .btn-block { width: 100%; justify-content: center; }
 
+.back-to-top {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--white);
+  border: 2px solid rgba(255, 255, 255, .18);
+  box-shadow: 0 18px 30px rgba(15, 31, 61, .18);
+  font-size: 1.15rem;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px);
+  transition: opacity 180ms ease, transform 180ms ease, visibility 180ms ease;
+  z-index: 999;
+}
+
+.back-to-top.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.back-to-top:hover {
+  background: #E09510;
+}
+
 /* ── Button row ── */
 .button-row {
   display: flex;
@@ -189,7 +221,7 @@ p.lead { font-size: 1.08rem; color: var(--text); line-height: 1.75; }
 .visual-card.main h3 { margin: 8px 0 10px; color: var(--navy); font-size: 1.2rem; }
 .visual-card.float {
   position: absolute;
-  bottom: 0;
+  bottom: -40px;
   right: -16px;
   width: 180px;
   z-index: 2;
@@ -458,7 +490,8 @@ p.lead { font-size: 1.08rem; color: var(--text); line-height: 1.75; }
   border-radius: var(--radius-xl);
   padding: 52px 56px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: start;
   justify-content: space-between;
   gap: 40px;
   flex-wrap: wrap;
@@ -692,24 +725,24 @@ a:hover {
 .hero-content .lead {
   margin-bottom: 30px;
   color: var(--slate-700);
-  font-size: clamp(1.05rem, 2vw, 1.2rem);
+  font-size: clamp(1.05rem, 2vw, 1.1rem);
 }
 
 .hero-badges {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 30px;
+  margin-top: 24px;
 }
 
 .hero-badges span {
-  padding: 10px 14px;
+  padding: 8px 14px;
   border: 1px solid rgba(216, 210, 250, .9);
   border-radius: 999px;
   color: var(--blue-900);
   background: rgba(255, 255, 255, .75);
   box-shadow: 0 7px 20px rgba(45, 35, 105, .06);
-  font-size: .88rem;
+  font-size: .84rem;
   font-weight: 750;
 }
 
@@ -718,6 +751,95 @@ a:hover {
   color: var(--cyan);
   content: "\2713";
   font-weight: 900;
+}
+
+.hero-overview-card {
+  padding: 32px;
+  border: 2px solid rgba(43, 94, 167, .15);
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .95) 0%, rgba(245, 166, 35, .03) 100%);
+  box-shadow: 0 22px 55px rgba(45, 35, 105, .14), inset 0 1px 0 rgba(255, 255, 255, .8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.overview-header {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid rgba(43, 94, 167, .1);
+}
+
+.overview-header h2 {
+  margin-bottom: 6px;
+  font-size: 1.75rem;
+  color: var(--navy);
+}
+
+.overview-header p {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.overview-features {
+  display: grid;
+  gap: 18px;
+  flex: 1;
+  margin-bottom: 24px;
+}
+
+.feature-item {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.feature-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(43, 94, 167, .12), rgba(245, 166, 35, .08));
+  color: var(--blue);
+  font-size: 1.4rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.feature-content h3 {
+  margin: 0 0 4px 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.feature-content p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.overview-cta {
+  padding-top: 20px;
+  border-top: 2px solid rgba(43, 94, 167, .1);
+  display: grid;
+  gap: 12px;
+}
+
+.cta-tagline {
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0;
+  text-align: center;
 }
 
 .tutor-search-card {
@@ -859,7 +981,7 @@ a:hover {
 .faq-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(340px, .8fr);
-  align-items: start;
+  align-items: center;
   gap: 56px;
 }
 
@@ -1047,6 +1169,7 @@ a:hover {
     font-size: 2.35rem;
   }
 
+  .hero-overview-card,
   .tutor-search-card {
     padding: 22px;
   }
