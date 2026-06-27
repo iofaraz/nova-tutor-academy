@@ -2,9 +2,15 @@ const crypto = require("crypto");
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const { pool } = require("../config/db");
+const { createIpRateLimiter } = require("../middleware/rateLimit");
 
 const router = express.Router();
 const sessions = new Map();
+const loginAttempts = createIpRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 8,
+  message: "Too many failed sign-in attempts. Please try again later.",
+});
 const SESSION_DURATION_MS =
   Number(process.env.ADMIN_SESSION_HOURS || 8) * 60 * 60 * 1000;
 
@@ -84,7 +90,59 @@ async function verifyAdminCredentials(username, password) {
     : null;
 }
 
-router.post("/login", async (req, res, next) => {
+async function fetchRows(query, params = []) {
+  const [rows] = await pool.execute(query, params);
+  return rows;
+}
+
+async function moveRequestToApproved({
+  requestTable,
+  approvedTable,
+  requestId,
+  approvedBy,
+  insertColumns,
+  selectColumns,
+}) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    const [rows] = await connection.execute(
+      `SELECT ${selectColumns.join(", ")} FROM ${requestTable} WHERE id = ? LIMIT 1 FOR UPDATE`,
+      [requestId]
+    );
+
+    const request = rows[0];
+    if (!request) {
+      await connection.rollback();
+      return null;
+    }
+
+    const insertValues = insertColumns.map((column) => request[column]);
+    await connection.execute(
+      `INSERT INTO ${approvedTable}
+        (${insertColumns.join(", ")}, approved_by)
+       VALUES (${insertColumns.map(() => "?").join(", ")}, ?)`,
+      [...insertValues, approvedBy]
+    );
+
+    await connection.execute(`DELETE FROM ${requestTable} WHERE id = ?`, [requestId]);
+    await connection.commit();
+    return request;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
+async function deleteRow(table, id) {
+  const [result] = await pool.execute(`DELETE FROM ${table} WHERE id = ?`, [id]);
+  return result.affectedRows > 0;
+}
+
+router.post("/login", loginAttempts, async (req, res, next) => {
   const username = clean(req.body.username, 50);
   const password = String(req.body.password || "");
 
@@ -119,7 +177,7 @@ router.post("/logout", requireAdmin, (req, res) => {
 
 router.get("/students", requireAdmin, async (req, res, next) => {
   try {
-    const [students] = await pool.execute(
+    const students = await fetchRows(
       `SELECT id, name, phone, email, city, tutor_type, class_level,
               curriculum, subjects, notes, submitted_at
        FROM student_requests
@@ -131,15 +189,211 @@ router.get("/students", requireAdmin, async (req, res, next) => {
   }
 });
 
+router.get("/students/approved", requireAdmin, async (req, res, next) => {
+  try {
+    const students = await fetchRows(
+      `SELECT id, source_request_id, name, phone, email, city, tutor_type, class_level,
+              curriculum, subjects, notes, approved_by, approved_at
+       FROM students
+       ORDER BY approved_at DESC, id DESC`
+    );
+    return res.json({ students });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post("/students/:id/approve", requireAdmin, async (req, res, next) => {
+  const requestId = Number(req.params.id);
+  if (!Number.isInteger(requestId) || requestId <= 0) {
+    return res.status(400).json({ message: "Invalid student request id." });
+  }
+
+  try {
+    const request = await moveRequestToApproved({
+      requestTable: "student_requests",
+      approvedTable: "students",
+      requestId,
+      approvedBy: req.admin.username,
+      insertColumns: [
+        "source_request_id",
+        "name",
+        "phone",
+        "email",
+        "city",
+        "tutor_type",
+        "class_level",
+        "curriculum",
+        "subjects",
+        "notes",
+      ],
+      selectColumns: [
+        "id AS source_request_id",
+        "name",
+        "phone",
+        "email",
+        "city",
+        "tutor_type",
+        "class_level",
+        "curriculum",
+        "subjects",
+        "notes",
+      ],
+    });
+
+    if (!request) {
+      return res.status(404).json({ message: "Student request not found." });
+    }
+
+    return res.json({
+      message: "Student request approved successfully.",
+      student: request,
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post("/students/:id/reject", requireAdmin, async (req, res, next) => {
+  const requestId = Number(req.params.id);
+  if (!Number.isInteger(requestId) || requestId <= 0) {
+    return res.status(400).json({ message: "Invalid student request id." });
+  }
+
+  try {
+    const deleted = await deleteRow("student_requests", requestId);
+    if (!deleted) {
+      return res.status(404).json({ message: "Student request not found." });
+    }
+    return res.json({ message: "Student request rejected and removed." });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.delete("/students/approved/:id", requireAdmin, async (req, res, next) => {
+  const studentId = Number(req.params.id);
+  if (!Number.isInteger(studentId) || studentId <= 0) {
+    return res.status(400).json({ message: "Invalid student record id." });
+  }
+
+  try {
+    const deleted = await deleteRow("students", studentId);
+    if (!deleted) {
+      return res.status(404).json({ message: "Student record not found." });
+    }
+    return res.json({ message: "Student record permanently deleted." });
+  } catch (error) {
+    return next(error);
+  }
+});
+
 router.get("/teachers", requireAdmin, async (req, res, next) => {
   try {
-    const [teachers] = await pool.execute(
+    const teachers = await fetchRows(
       `SELECT id, name, phone, email, city, subjects, experience_years,
               qualification, availability, submitted_at
        FROM teacher_applications
        ORDER BY submitted_at DESC, id DESC`
     );
     return res.json({ teachers });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.get("/teachers/approved", requireAdmin, async (req, res, next) => {
+  try {
+    const teachers = await fetchRows(
+      `SELECT id, source_request_id, name, phone, email, city, subjects, experience_years,
+              qualification, availability, approved_by, approved_at
+       FROM teachers
+       ORDER BY approved_at DESC, id DESC`
+    );
+    return res.json({ teachers });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post("/teachers/:id/approve", requireAdmin, async (req, res, next) => {
+  const requestId = Number(req.params.id);
+  if (!Number.isInteger(requestId) || requestId <= 0) {
+    return res.status(400).json({ message: "Invalid teacher application id." });
+  }
+
+  try {
+    const request = await moveRequestToApproved({
+      requestTable: "teacher_applications",
+      approvedTable: "teachers",
+      requestId,
+      approvedBy: req.admin.username,
+      insertColumns: [
+        "source_request_id",
+        "name",
+        "phone",
+        "email",
+        "city",
+        "subjects",
+        "experience_years",
+        "qualification",
+        "availability",
+      ],
+      selectColumns: [
+        "id AS source_request_id",
+        "name",
+        "phone",
+        "email",
+        "city",
+        "subjects",
+        "experience_years",
+        "qualification",
+        "availability",
+      ],
+    });
+
+    if (!request) {
+      return res.status(404).json({ message: "Teacher application not found." });
+    }
+
+    return res.json({
+      message: "Teacher application approved successfully.",
+      teacher: request,
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post("/teachers/:id/reject", requireAdmin, async (req, res, next) => {
+  const requestId = Number(req.params.id);
+  if (!Number.isInteger(requestId) || requestId <= 0) {
+    return res.status(400).json({ message: "Invalid teacher application id." });
+  }
+
+  try {
+    const deleted = await deleteRow("teacher_applications", requestId);
+    if (!deleted) {
+      return res.status(404).json({ message: "Teacher application not found." });
+    }
+    return res.json({ message: "Teacher application rejected and removed." });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.delete("/teachers/approved/:id", requireAdmin, async (req, res, next) => {
+  const teacherId = Number(req.params.id);
+  if (!Number.isInteger(teacherId) || teacherId <= 0) {
+    return res.status(400).json({ message: "Invalid teacher record id." });
+  }
+
+  try {
+    const deleted = await deleteRow("teachers", teacherId);
+    if (!deleted) {
+      return res.status(404).json({ message: "Teacher record not found." });
+    }
+    return res.json({ message: "Teacher record permanently deleted." });
   } catch (error) {
     return next(error);
   }

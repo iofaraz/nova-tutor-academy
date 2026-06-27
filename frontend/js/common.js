@@ -1,15 +1,19 @@
-const basePath = "/frontend/pages/";
+const isPagesSection = window.location.pathname.includes("/pages/");
+const siteRoot = isPagesSection ? "../" : "./";
+const basePath = `${siteRoot}pages/`;
+const homePath = `${siteRoot}index.html`;
+const assetPath = `${siteRoot}assets/`;
 
 const HEADER_HTML = `
 <header class="site-header" id="siteHeader">
   <div class="container nav-inner">
-    <a class="nav-brand" href="/frontend/index.html" aria-label="Nova Tutor Academy home">
-      <img src="/frontend/assets/brand identity.png" alt="Nova Tutor Academy">
+    <a class="nav-brand" href="${homePath}" aria-label="Nova Tutor Academy home">
+      <img src="${assetPath}brand identity.png" alt="Nova Tutor Academy">
     </a>
 
     <div class="nav-menu" id="navMenu">
       <ul class="nav-links">
-        <li><a href="/frontend/index.html">Home</a></li>
+        <li><a href="${homePath}">Home</a></li>
         <li class="has-dropdown">
           <a href="#">Services<i class="fa-solid fa-angle-down" style="margin-left:4px"></i></a>
           <ul class="dropdown-menu">
@@ -21,6 +25,7 @@ const HEADER_HTML = `
         <li><a href="${basePath}our-faculty.html">Faculty</a></li>
         <li><a href="${basePath}about.html">About</a></li>
         <li><a href="${basePath}contact.html">Contact</a></li>
+        <li><a href="${basePath}admin-signin.html">Admin</a></li>
       </ul>
     </div>
     <div class="nav-actions">
@@ -39,10 +44,10 @@ const FOOTER_HTML = `
   <div class="container">
     <div class="footer-grid">
       <div class="footer-brand">
-        <a class="nav-brand" href="/frontend/index.html" aria-label="Nova Tutor Academy home">
-          <img src="/frontend/assets/brand identity.png" alt="Nova Tutor Academy">
+        <a class="nav-brand" href="${homePath}" aria-label="Nova Tutor Academy home">
+          <img src="${assetPath}brand identity.png" alt="Nova Tutor Academy">
         </a>
-        <p>Connecting students with trusted tutors across Islamabad, Rawalpindi, Lahore, and Karachi — and online worldwide.</p>
+        <p>Connecting students with trusted tutors across Islamabad, Rawalpindi, Lahore, and Karachi - and online worldwide.</p>
       </div>
       <div class="footer-col">
         <h4>Subjects</h4>
@@ -73,7 +78,7 @@ const FOOTER_HTML = `
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© ${new Date().getFullYear()} Nova Tutor Academy. All rights reserved.</span>
+      <span>&copy; ${new Date().getFullYear()} Nova Tutor Academy. All rights reserved.</span>
       <span>Islamabad · Rawalpindi · Lahore · Karachi</span>
     </div>
   </div>

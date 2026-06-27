@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="shortcut icon" href="../assets/logo.png" type="image/png" />
+    <title>Admin Sign In | Nova Tutor Academy</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/navbar.css" />
+    <link rel="stylesheet" href="../css/forms.css" />
+    <script src="../js/form-utils.js" defer></script>
+    <script src="../js/admin-signin.js" defer></script>
+  </head>
+  <body class="admin-page admin-signin-page">
+    <main>
+      <section class="admin-login" id="adminLogin">
+        <div class="form-shell login-card">
+          <a class="nav-brand" href="../index.html" style="margin-bottom: 28px">
+            <img src="../assets/brand identity.png" alt="Nova Academy" style="margin: 0 auto;" />
+          </a>
+          <h2 style="margin-top: 12px;">Admin Sign In</h2>
+          <p class="form-intro">
+            Use your administrator account to view incoming requests.
+          </p>
+          <form id="adminLoginForm">
+            <div class="form-group" style="margin-bottom: 18px">
+              <label for="username">Username</label>
+              <input
+                class="form-control"
+                id="username"
+                name="username"
+                required
+                maxlength="50"
+                autocomplete="username"
+                autocapitalize="none"
+                spellcheck="false"
+              />
+            </div>
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input
+                class="form-control"
+                id="password"
+                name="password"
+                type="password"
+                required
+                autocomplete="current-password"
+              />
+            </div>
+            <div class="form-actions">
+              <button
+                class="btn btn-primary btn-block submit-button"
+                type="submit"
+              >
+                Sign in
+              </button>
+            </div>
+            <div
+              class="form-status"
+              id="loginStatus"
+              role="status"
+              aria-live="polite"
+            ></div>
+            <a href="../index.html"><i class="fa-solid fa-arrow-left"></i> Go To Home</a>
+          </form>
+        </div>
+      </section>
+    </main>
+    <script
+      src="https://kit.fontawesome.com/b7d2e68c15.js"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>

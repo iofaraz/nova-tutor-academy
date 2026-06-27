@@ -12,7 +12,9 @@
     <link rel="stylesheet" href="../css/style.css" />
     <link rel="stylesheet" href="../css/navbar.css" />
     <link rel="stylesheet" href="../css/forms.css" />
+    <script src="../js/form-utils.js" defer></script>
     <script src="../js/common.js" defer></script>
+    <script src="../js/contact-form.js" defer></script>
   </head>
   <body>
     <div data-site-header></div>
@@ -67,12 +69,7 @@
               </div>
             </div>
           </div>
-          <form
-            class="form-shell"
-            action="mailto:hello@novatutoracademy.com"
-            method="post"
-            enctype="text/plain"
-          >
+          <form class="form-shell" id="contactForm">
             <h2>Send a message</h2>
             <p class="form-intro">
               Share a few details and we’ll get back to you.
@@ -86,6 +83,7 @@
                   id="contactName"
                   name="name"
                   required
+                  maxlength="100"
                   autocomplete="name"
                 />
               </div>
@@ -96,6 +94,9 @@
                   id="contactPhone"
                   name="phone"
                   type="tel"
+                  maxlength="20"
+                  inputmode="tel"
+                  pattern="[0-9+\(\)\- ]{7,20}"
                   autocomplete="tel"
                 />
               </div>
@@ -108,12 +109,20 @@
                   name="email"
                   type="email"
                   required
+                  maxlength="150"
                   autocomplete="email"
                 />
               </div>
               <div class="form-group full">
-                <label for="contactTopic">I’m interested in</label
-                ><select class="form-control" id="contactTopic" name="topic">
+                <label for="contactTopic"
+                  >I&apos;m interested in <span class="required">*</span></label
+                ><select
+                  class="form-control"
+                  id="contactTopic"
+                  name="topic"
+                  required
+                >
+                  <option value="">Select a topic</option>
                   <option>Finding a Tutor</option>
                   <option>Teaching with Nova</option>
                   <option>General Information</option>
@@ -128,15 +137,22 @@
                   id="contactMessage"
                   name="message"
                   required
+                  maxlength="5000"
                   placeholder="How can we help?"
                 ></textarea>
               </div>
             </div>
             <div class="form-actions">
-              <button class="btn btn-primary" type="submit">
-                Send message
+              <button class="btn btn-primary submit-button" type="submit">
+                Send Message
               </button>
             </div>
+            <div
+              class="form-status"
+              id="contactFormStatus"
+              role="status"
+              aria-live="polite"
+            ></div>
           </form>
         </div>
       </section>

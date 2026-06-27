@@ -51,8 +51,11 @@ CREATE DATABASE nova_tutor_db;
 ## 🛠 Backend Configuration
 
 1. Configure your environment variables in the `.env` file.
-2. Update database credentials and other required settings.
-3. Start the Express server using `server.js`.
+2. Update database credentials and mail settings for your environment.
+3. Set `CORS_ORIGIN` in production to the deployed frontend origin.
+4. Start the Express server using `npm run dev` from `backend/`.
+
+The backend now serves the frontend files locally as well, so you can open the site through the Express app instead of `file://` when testing form submissions, authentication, and email notifications.
 
 ---
 
@@ -67,5 +70,6 @@ CREATE DATABASE nova_tutor_db;
 ## 📄 Notes
 
 - Ensure MySQL is running before starting the backend server.
+- Configure `MAIL_USER`, `MAIL_PASS`, `MAIL_TO`, and optionally `MAIL_FROM` for live email delivery.
 - Keep the `.env` file private and never commit it to version control.
 - Verify database credentials match your local environment configuration.

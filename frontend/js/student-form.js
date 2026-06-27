@@ -1,30 +1,35 @@
-const isLocalFrontend =
-  window.location.protocol === "file:" ||
-  ["localhost", "127.0.0.1"].includes(window.location.hostname);
-const API_BASE_URL = isLocalFrontend ? "http://localhost:5000/api" : "/api";
+const {
+  applyFieldErrors,
+  clearFieldErrors,
+  collectFormData,
+  getApiBase,
+  isLocalFrontend,
+  setFormStatus,
+} = window.NovaFormUtils;
+
 const studentForm = document.getElementById("studentRequestForm");
+const studentStatus = document.getElementById("studentFormStatus");
+const API_BASE_URL = getApiBase("/api");
 
 const requestedTutorType = new URLSearchParams(window.location.search).get("tutor");
 const tutorTypeSelect = document.getElementById("tutor_type");
 if (requestedTutorType && tutorTypeSelect) tutorTypeSelect.value = requestedTutorType;
 
-function showStudentStatus(message, type) {
-  const status = document.getElementById("studentFormStatus");
-  if (!status) return;
-  status.textContent = message;
-  status.className = `form-status show ${type}`;
-}
-
 studentForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
+  clearFieldErrors(studentForm);
+
+  if (!studentForm.reportValidity()) {
+    setFormStatus(studentStatus, "Please correct the highlighted fields.", "error");
+    return;
+  }
 
   const submitButton = studentForm.querySelector(".submit-button");
-  const formData = new FormData(studentForm);
-  const payload = Object.fromEntries(formData.entries());
+  const payload = collectFormData(studentForm);
 
   submitButton.disabled = true;
-  submitButton.textContent = "Sending request…";
-  showStudentStatus("Submitting your details securely…", "info");
+  submitButton.textContent = "Sending request...";
+  setFormStatus(studentStatus, "Submitting your details securely...", "loading");
 
   try {
     const response = await fetch(`${API_BASE_URL}/students/request`, {
@@ -34,17 +39,28 @@ studentForm?.addEventListener("submit", async (event) => {
     });
 
     const result = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(result.message || "We could not submit your request.");
+    if (!response.ok) {
+      applyFieldErrors(studentForm, result.errors);
+      throw new Error(
+        result.message ||
+          "We could not submit your request right now. Please review the form and try again."
+      );
+    }
 
     studentForm.reset();
-    showStudentStatus("Your request has been received. Our team will contact you shortly.", "success");
+    setFormStatus(
+      studentStatus,
+      result.message ||
+        "Your request is sent and a confirmation email has been sent to your inbox.",
+      "success"
+    );
   } catch (error) {
-    const offlineMessage = window.location.protocol === "file:"
+    const offlineMessage = isLocalFrontend()
       ? "The form is ready, but the backend must be running on localhost:5000 to receive it."
       : error.message;
-    showStudentStatus(offlineMessage, "error");
+    setFormStatus(studentStatus, offlineMessage, "error");
   } finally {
     submitButton.disabled = false;
-    submitButton.textContent = "Submit tutor request";
+    submitButton.textContent = "Submit Tutor Request";
   }
 });

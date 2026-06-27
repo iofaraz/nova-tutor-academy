@@ -23,6 +23,25 @@ CREATE TABLE IF NOT EXISTS student_requests (
   INDEX idx_student_city_type (city, tutor_type)
 );
 
+CREATE TABLE IF NOT EXISTS students (
+  id                  INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  source_request_id   INT UNSIGNED NOT NULL,
+  name                VARCHAR(100) NOT NULL,
+  phone               VARCHAR(20) NOT NULL,
+  email               VARCHAR(150),
+  city                ENUM('Islamabad/Rawalpindi', 'Lahore', 'Karachi') NOT NULL,
+  tutor_type          ENUM('Home', 'Online', 'International') NOT NULL,
+  class_level         VARCHAR(50) NOT NULL,
+  curriculum          VARCHAR(100),
+  subjects            TEXT NOT NULL,
+  notes               TEXT,
+  approved_by         VARCHAR(50),
+  approved_at         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_students_source_request (source_request_id),
+  INDEX idx_students_approved_at (approved_at),
+  INDEX idx_students_city_type (city, tutor_type)
+);
+
 CREATE TABLE IF NOT EXISTS teacher_applications (
   id                INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name              VARCHAR(100) NOT NULL,
@@ -38,10 +57,39 @@ CREATE TABLE IF NOT EXISTS teacher_applications (
   INDEX idx_teacher_city (city)
 );
 
+CREATE TABLE IF NOT EXISTS teachers (
+  id                  INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  source_request_id   INT UNSIGNED NOT NULL,
+  name                VARCHAR(100) NOT NULL,
+  phone               VARCHAR(20) NOT NULL,
+  email               VARCHAR(150),
+  city                ENUM('Islamabad/Rawalpindi', 'Lahore', 'Karachi') NOT NULL,
+  subjects            TEXT NOT NULL,
+  experience_years    INT UNSIGNED,
+  qualification       VARCHAR(200) NOT NULL,
+  availability        VARCHAR(100) NOT NULL,
+  approved_by         VARCHAR(50),
+  approved_at         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_teachers_source_request (source_request_id),
+  INDEX idx_teachers_approved_at (approved_at),
+  INDEX idx_teachers_city (city)
+);
+
 CREATE TABLE IF NOT EXISTS admin_users (
   id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   username      VARCHAR(50) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS contact_messages (
+  id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name          VARCHAR(100) NOT NULL,
+  phone         VARCHAR(20),
+  email         VARCHAR(150) NOT NULL,
+  topic         VARCHAR(80) NOT NULL,
+  message       TEXT NOT NULL,
+  submitted_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_contact_submitted_at (submitted_at)
 );
 
 CREATE TABLE IF NOT EXISTS faculty_members (
@@ -119,7 +167,7 @@ VALUES
 'MPhil Chemistry',
 5,
 'Chemistry',
-'Islamabad/Rawalpandi',
+'Islamabad/Rawalpindi',
 'Chemistry teacher with 5 years of teaching experience at The City School.',
 '/images/faculty/tehreem.jpeg',
 5
