@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS faculty_members (
   subjects          VARCHAR(255) NOT NULL,
   city              VARCHAR(100),
   profile_note      TEXT,
+  image_path        VARCHAR(255),
   display_order     INT UNSIGNED NOT NULL DEFAULT 100,
   is_active         TINYINT(1) NOT NULL DEFAULT 1,
   created_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -60,6 +61,10 @@ CREATE TABLE IF NOT EXISTS faculty_members (
   INDEX idx_faculty_experience (experience_years)
 );
 
+-- Keep existing databases in sync when this setup script is run again.
+ALTER TABLE faculty_members
+  ADD COLUMN IF NOT EXISTS image_path VARCHAR(255) AFTER profile_note;
+
 -- Development fallback: admin / admin123
 -- ADMIN_USERNAME and ADMIN_PASSWORD in .env take priority.
 INSERT INTO admin_users (username, password_hash)
@@ -67,19 +72,134 @@ VALUES ('admin', '$2b$10$kNgmSZ0K0lA7N9jqJ8VDHOUVgvQlhHy9TfNKhKGAizLW2BSn6JUmC')
 ON DUPLICATE KEY UPDATE password_hash = VALUES(password_hash);
 
 INSERT INTO faculty_members
-  (name, qualification, experience_years, subjects, city, profile_note, display_order)
+(name, qualification, experience_years, subjects, city, profile_note, image_path, display_order)
 VALUES
-  ('Ayesha Siddiqui', 'MSc Mathematics, BEd', 8, 'Mathematics, O/A Level, Entry Test', 'Islamabad/Rawalpindi', 'Known for calm explanations, structured practice, and confidence-building exam preparation.', 1),
-  ('Hamza Ahmed', 'MPhil Physics', 7, 'Physics, FSc, A Level', 'Lahore', 'Helps students connect formulas with real concepts through examples, diagrams, and targeted revision.', 2),
-  ('Maryam Khan', 'MA English Literature, CELTA', 9, 'English, IELTS, Grammar, Literature', 'Karachi', 'Focuses on fluent communication, writing clarity, and practical language improvement.', 3),
-  ('Bilal Raza', 'BS Computer Science', 6, 'Computer Science, Programming, Web Basics', 'Online', 'Teaches coding through simple projects, problem-solving habits, and step-by-step debugging.', 4),
-  ('Sara Noor', 'MSc Chemistry', 10, 'Chemistry, Biology, O Level Science', 'Islamabad/Rawalpindi', 'Makes science easier with visual explanations, topic maps, and regular concept checks.', 5),
-  ('Usman Tariq', 'MBA Finance, ACCA Finalist', 7, 'Accounting, Business Studies, Economics', 'Online', 'Supports commerce students with exam-focused practice and clear real-world examples.', 6)
+(
+'Sir Talat Ameer',
+'MSc Mathematics',
+10,
+'Mathematics, O Level, A Level',
+'Islamabad/Rawalpindi',
+'10 years of experience teaching O Level and A Level Mathematics at Wawell, a reputed educational institute in Pakistan.',
+'/images/faculty/talat.jpeg',
+1
+),
+(
+'Miss Rida Khaliq',
+'MPhil Bioinformatics',
+8,
+'Biology, Chemistry, Mathematics, Pakistan Studies, Spoken English',
+'Islamabad/Rawalpindi',
+'Experienced O Level teacher specializing in Biology, Chemistry, Mathematics, Pakistan Studies, and Spoken English.',
+'/images/faculty/rida.jpeg',
+2
+),
+(
+'Sir Tahseen Raza',
+'MPhil Accounting & Finance, MCom',
+15,
+'Accounting, Business Studies, Economics, ACCA, CA',
+'Islamabad/Rawalpindi',
+'Experienced Accounting and Business educator. Has taught at Roots, Punjab College, SKANS, Roots Wellington Campus, and MIUC. Specializes in O Level, A Level, ACCA, and CA courses.',
+'/images/faculty/tehseen.jpeg',
+3
+),
+(
+'Sir M. Nadeem Akram',
+'MPhil English Linguistics',
+15,
+'English Language, English Literature',
+'Islamabad/Rawalpindi',
+'Experienced educationist with 15 years of teaching English Language and Literature.',
+'/images/faculty/nadeem.jpeg',
+4
+),
+(
+'Miss Tahreem Tahir',
+'MPhil Chemistry',
+5,
+'Chemistry',
+'Islamabad/Rawalpandi',
+'Chemistry teacher with 5 years of teaching experience at The City School.',
+'/images/faculty/tehreem.jpeg',
+5
+),
+(
+'Sir Fayyaz Ahmed',
+'MBA',
+15,
+'Business Studies, O Level, A Level',
+'Islamabad/Rawalpindi',
+'15 years of experience teaching Business Studies at Roots International, Super Nova, and Beaconhouse.',
+'/images/faculty/fayyaz.jpeg',
+6
+),
+(
+'Sir Adnan Qaisar',
+'MIT',
+25,
+'Computer Science, Information Technology',
+'Islamabad/Rawalpindi',
+'25 years of teaching experience at Bahria College, The City School, Beaconhouse, and Kids College.',
+'/images/faculty/adnan.jpeg',
+7
+),
+(
+'Sir Najab Sami',
+'MPhil Physics',
+12,
+'Physics, O Level, A Level',
+'Islamabad/Rawalpindi',
+'12 years of teaching experience at Roots International, Beaconhouse, and ASAS Academy.',
+'/images/faculty/najab.jpeg',
+8
+),
+(
+'Sir Qamar Baloch',
+'MPhil Economics',
+15,
+'Economics',
+'Islamabad/Rawalpindi',
+'15 years of teaching experience at Beaconhouse, LGS, The City School, and ASAS Academy.',
+'/images/faculty/qamar.jpeg',
+9
+),
+(
+'Sir M Fazil',
+'MA Islamic Studies',
+15,
+'Islamic Studies',
+'Islamabad/Rawalpindi',
+'15 years of teaching experience in reputed educational institutes in Pakistan.',
+'/images/faculty/fazil.jpeg',
+10
+),
+(
+'Sir Waqas Noor',
+'MA History',
+11,
+'History',
+'Islamabad/Rawalpindi',
+'11 years of teaching experience in reputed educational institutes in Pakistan.',
+'/images/faculty/waqas.jpeg',
+11
+),
+(
+'Miss Amna',
+'MA Urdu',
+27,
+'Urdu',
+'Islamabad/Rawalpindi',
+'27 years of teaching experience in reputed educational institutes in Pakistan.',
+'/images/faculty/amna.jpeg',
+12
+)
 ON DUPLICATE KEY UPDATE
-  qualification = VALUES(qualification),
-  experience_years = VALUES(experience_years),
-  subjects = VALUES(subjects),
-  city = VALUES(city),
-  profile_note = VALUES(profile_note),
-  display_order = VALUES(display_order),
-  is_active = 1;
+qualification = VALUES(qualification),
+experience_years = VALUES(experience_years),
+subjects = VALUES(subjects),
+city = VALUES(city),
+profile_note = VALUES(profile_note),
+image_path = VALUES(image_path),
+display_order = VALUES(display_order),
+is_active = 1;

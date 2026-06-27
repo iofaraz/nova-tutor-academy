@@ -123,6 +123,8 @@
 .faculty-avatar {
   width: 60px;
   height: 60px;
+  position: relative;
+  overflow: hidden;
   border-radius: 50%;
   background: var(--navy);
   color: var(--white);
@@ -133,6 +135,13 @@
   justify-content: center;
   font-family: var(--font-display);
   flex-shrink: 0;
+}
+.faculty-avatar img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .faculty-name { font-size: 1rem; font-weight: 600; color: var(--navy); }
 .faculty-qual { font-size: 0.82rem; color: var(--text-muted); }

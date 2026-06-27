@@ -45,6 +45,7 @@ app.use(
 );
 app.use(express.json({ limit: "100kb" }));
 app.use(express.urlencoded({ extended: false, limit: "100kb" }));
+app.use("/images", express.static(path.join(__dirname, "public", "images")));
 
 app.use("/api/students", studentRoutes);
 app.use("/api/teachers", teacherRoutes);

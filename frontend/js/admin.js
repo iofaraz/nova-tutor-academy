@@ -1,7 +1,9 @@
-const ADMIN_API_BASE_URL =
-  window.location.protocol === "file:"
-    ? "http://localhost:5000/api/admin"
-    : "/api/admin";
+const isLocalFrontend =
+  window.location.protocol === "file:" ||
+  ["localhost", "127.0.0.1"].includes(window.location.hostname);
+const ADMIN_API_BASE_URL = isLocalFrontend
+  ? "http://localhost:5000/api/admin"
+  : "/api/admin";
 const TOKEN_KEY = "novaAdminToken";
 
 const loginSection = document.getElementById("adminLogin");

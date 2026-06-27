@@ -6,7 +6,7 @@ const router = express.Router();
 router.get("/", async (req, res, next) => {
   try {
     const [faculty] = await pool.execute(
-      `SELECT id, name, qualification, experience_years, subjects, city, profile_note
+      `SELECT id, name, qualification, experience_years, subjects, city, profile_note, image_path
        FROM faculty_members
        WHERE is_active = 1
        ORDER BY display_order ASC, experience_years DESC, name ASC`

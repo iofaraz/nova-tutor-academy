@@ -2,8 +2,13 @@ const facultyGrid = document.getElementById("facultyGrid");
 const facultyStatus = document.getElementById("facultyStatus");
 const facultySearch = document.getElementById("facultySearch");
 
-const API_BASE =
-  window.location.protocol === "file:" ? "http://localhost:5000/api" : "/api";
+const isLocalFrontend =
+  window.location.protocol === "file:" ||
+  ["localhost", "127.0.0.1"].includes(window.location.hostname);
+const API_BASE = isLocalFrontend ? "http://localhost:5000/api" : "/api";
+const API_ORIGIN = isLocalFrontend
+  ? "http://localhost:5000"
+  : window.location.origin;
 
 const fallbackFaculty = [
   {
@@ -88,6 +93,11 @@ function experienceLabel(years) {
   return `${count}+ year${count === 1 ? "" : "s"}`;
 }
 
+function facultyImageUrl(imagePath) {
+  if (!imagePath) return "";
+  return new URL(imagePath, `${API_ORIGIN}/`).href;
+}
+
 function renderFaculty(faculty) {
   if (!facultyGrid || !facultyStatus) return;
 
@@ -105,7 +115,14 @@ function renderFaculty(faculty) {
     .map(
       (member) => `
         <article class="faculty-card">
-          <span class="faculty-avatar" aria-hidden="true">${escapeHtml(initials(member.name))}</span>
+          <div class="faculty-avatar">
+            <span aria-hidden="true">${escapeHtml(initials(member.name))}</span>
+            ${
+              member.image_path
+                ? `<img src="${escapeHtml(facultyImageUrl(member.image_path))}" alt="${escapeHtml(member.name)}" loading="lazy" onerror="this.remove()">`
+                : ""
+            }
+          </div>
           <h3>${escapeHtml(member.name)}</h3>
           <dl class="faculty-meta">
             <div>

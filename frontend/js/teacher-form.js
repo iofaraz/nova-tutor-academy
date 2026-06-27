@@ -1,5 +1,9 @@
-const TEACHER_API_BASE_URL =
-  window.location.protocol === "file:" ? "http://localhost:5000/api" : "/api";
+const isLocalFrontend =
+  window.location.protocol === "file:" ||
+  ["localhost", "127.0.0.1"].includes(window.location.hostname);
+const TEACHER_API_BASE_URL = isLocalFrontend
+  ? "http://localhost:5000/api"
+  : "/api";
 const teacherForm = document.getElementById("teacherApplicationForm");
 
 function showTeacherStatus(message, type) {
