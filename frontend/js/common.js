@@ -88,6 +88,16 @@ document.querySelectorAll("[data-site-footer]").forEach((element) => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
+  const whatsappLink = document.createElement("a");
+  whatsappLink.className = "whatsapp-float";
+  whatsappLink.href = "https://wa.me/923001234567";
+  whatsappLink.target = "_blank";
+  whatsappLink.rel = "noopener noreferrer";
+  whatsappLink.setAttribute("aria-label", "Chat with Nova Tutor Academy on WhatsApp");
+  whatsappLink.title = "Chat with us on WhatsApp";
+  whatsappLink.innerHTML = '<i class="fa-brands fa-whatsapp" aria-hidden="true"></i>';
+  document.body.appendChild(whatsappLink);
+
   const toggle = document.getElementById("navToggle");
   const menu = document.getElementById("navMenu");
 

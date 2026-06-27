@@ -8,17 +8,6 @@
   backdrop-filter: blur(14px);
 }
 
-.site-header::before {
-  display: block;
-  padding: 10px 20px;
-  color: rgba(255, 255, 255, .92);
-  background: linear-gradient(90deg, var(--blue-950), var(--blue-800));
-  content: "Call / WhatsApp: +92 300 1234567   |   Register as Student or Tutor";
-  font-size: .86rem;
-  font-weight: 700;
-  text-align: center;
-}
-
 .nav-inner {
   display: flex;
   min-height: 76px;
@@ -207,7 +196,7 @@ footer a:hover {
 
   .nav-menu {
     position: fixed;
-    top: 120px;
+    top: 88px;
     right: 18px;
     left: 18px;
     display: none;
@@ -253,11 +242,6 @@ footer a:hover {
 }
 
 @media (max-width: 760px) {
-  .site-header::before {
-    padding-inline: 14px;
-    content: "Call / WhatsApp: +92 300 1234567";
-  }
-
   .nav-inner {
     min-height: 68px;
   }
@@ -269,7 +253,7 @@ footer a:hover {
   }
 
   .nav-menu {
-    top: 110px;
+    top: 80px;
   }
 
   .footer-grid,
