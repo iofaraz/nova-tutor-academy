@@ -205,7 +205,7 @@ textarea.form-control {
 
 .admin-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 16px;
 }
 .admin-stat {
@@ -283,7 +283,7 @@ textarea.form-control {
   vertical-align: middle;
 }
 .data-table tr:last-child td { border-bottom: none; }
-.data-table tbody tr:hover { background: var(--slate); }
+/* .data-table tbody tr:hover { background: var(--slate); } */
 .empty-state {
   text-align: center;
   color: var(--text-light);

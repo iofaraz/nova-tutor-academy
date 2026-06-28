@@ -7,6 +7,9 @@ const SIGN_IN_PAGE = "./admin-signin.html";
 const dashboard = document.getElementById("adminDashboard");
 const adminStatus = document.getElementById("adminStatus");
 const dashboardReady = document.getElementById("dashboardReady");
+const facultyForm = document.getElementById("facultyForm");
+const facultyFormStatus = document.getElementById("facultyFormStatus");
+const facultyTableBody = document.getElementById("facultyTableBody");
 const confirmModal = document.getElementById("adminConfirmModal");
 const confirmTitle = document.getElementById("adminConfirmTitle");
 const confirmMessage = document.getElementById("adminConfirmMessage");
@@ -19,6 +22,7 @@ let adminState = {
   pendingTeachers: [],
   approvedStudents: [],
   approvedTeachers: [],
+  faculty: [],
 };
 
 function setStatus(element, message, type) {
@@ -223,11 +227,36 @@ function renderApprovedTeachers(teachers) {
     .join("");
 }
 
+function renderFaculty(faculty) {
+  if (!facultyTableBody) return;
+  if (!faculty.length) {
+    facultyTableBody.innerHTML = '<tr><td colspan="6" class="empty-state">No faculty members yet.</td></tr>';
+    return;
+  }
+
+  facultyTableBody.innerHTML = faculty
+    .map(
+      (member) => `
+        <tr data-id="${member.id}">
+          <td>${escapeHtml(member.name)}</td>
+          <td>${escapeHtml(member.city || "—")}</td>
+          <td>${escapeHtml(member.subjects)}</td>
+          <td>${escapeHtml(member.display_order)}</td>
+          <td>${member.is_active ? "Active" : "Inactive"}</td>
+          <td>
+            <button class="table-icon-btn danger" data-action="delete-faculty" data-id="${member.id}" type="button" aria-label="Remove faculty member">×</button>
+          </td>
+        </tr>`
+    )
+    .join("");
+}
+
 function updateStats() {
   const pendingStudents = adminState.pendingStudents.length;
   const pendingTeachers = adminState.pendingTeachers.length;
   const approvedStudents = adminState.approvedStudents.length;
   const approvedTeachers = adminState.approvedTeachers.length;
+  const facultyCount = adminState.faculty.length;
   const totalPending = pendingStudents + pendingTeachers;
   const totalApproved = approvedStudents + approvedTeachers;
   const totalAll = totalPending + totalApproved;
@@ -239,6 +268,7 @@ function updateStats() {
   document.getElementById("totalPendingCount").textContent = totalPending;
   document.getElementById("totalApprovedCount").textContent = totalApproved;
   document.getElementById("totalCount").textContent = totalAll;
+  document.getElementById("facultyCount").textContent = facultyCount;
 }
 
 function renderAll() {
@@ -246,25 +276,33 @@ function renderAll() {
   renderPendingTeachers(adminState.pendingTeachers);
   renderApprovedStudents(adminState.approvedStudents);
   renderApprovedTeachers(adminState.approvedTeachers);
+  renderFaculty(adminState.faculty);
   updateStats();
 }
 
 async function loadDashboardData() {
   setStatus(adminStatus, "Loading the latest submissions...", "loading");
   try {
-    const [studentResult, teacherResult, approvedStudentResult, approvedTeacherResult] =
-      await Promise.all([
-        adminFetch("/students"),
-        adminFetch("/teachers"),
-        adminFetch("/students/approved"),
-        adminFetch("/teachers/approved"),
-      ]);
+    const [
+      studentResult,
+      teacherResult,
+      approvedStudentResult,
+      approvedTeacherResult,
+      facultyResult,
+    ] = await Promise.all([
+      adminFetch("/students"),
+      adminFetch("/teachers"),
+      adminFetch("/students/approved"),
+      adminFetch("/teachers/approved"),
+      adminFetch("/faculty"),
+    ]);
 
     adminState = {
       pendingStudents: getList(studentResult, ["students", "requests", "data"]),
       pendingTeachers: getList(teacherResult, ["teachers", "applications", "data"]),
       approvedStudents: getList(approvedStudentResult, ["students", "data"]),
       approvedTeachers: getList(approvedTeacherResult, ["teachers", "data"]),
+      faculty: getList(facultyResult, ["faculty", "data"]),
     };
 
     renderAll();
@@ -288,6 +326,15 @@ async function mutateAndRefresh(path, options, successMessage) {
     showToast(error.message, "error");
     setStatus(adminStatus, error.message, "error");
   }
+}
+
+function readImageAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("Unable to read the selected image."));
+    reader.readAsDataURL(file);
+  });
 }
 
 function openConfirm({ title, message, onConfirm }) {
@@ -375,6 +422,19 @@ document.addEventListener("click", (event) => {
           "Approved teacher deleted permanently."
         ),
     });
+    return;
+  }
+  if (action === "delete-faculty") {
+    openConfirm({
+      title: "Remove faculty member?",
+      message: "This will permanently remove the faculty member and delete their uploaded image, if one exists. Continue?",
+      onConfirm: () =>
+        mutateAndRefresh(
+          `/faculty/${id}`,
+          { method: "DELETE" },
+          "Faculty member deleted permanently."
+        ),
+    });
   }
 });
 
@@ -387,6 +447,63 @@ confirmYes?.addEventListener("click", () => {
 confirmNo?.addEventListener("click", closeConfirm);
 confirmModal?.addEventListener("click", (event) => {
   if (event.target === confirmModal) closeConfirm();
+});
+
+facultyForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!facultyForm.reportValidity()) {
+    setStatus(facultyFormStatus, "Please correct the highlighted fields.", "error");
+    return;
+  }
+
+  const submitButton = facultyForm.querySelector(".submit-button");
+  const formData = new FormData(facultyForm);
+  const imageFile = formData.get("image");
+  let imageDataUrl = "";
+
+  if (imageFile instanceof File && imageFile.size > 0) {
+    if (imageFile.size > 2 * 1024 * 1024) {
+      setStatus(facultyFormStatus, "Faculty image must be 2 MB or smaller.", "error");
+      showToast("Faculty image must be 2 MB or smaller.", "error");
+      return;
+    }
+    imageDataUrl = await readImageAsDataUrl(imageFile);
+  }
+
+  const payload = {
+    name: String(formData.get("name") || ""),
+    qualification: String(formData.get("qualification") || ""),
+    experience_years: Number(formData.get("experience_years") || 0),
+    subjects: String(formData.get("subjects") || ""),
+    city: String(formData.get("city") || ""),
+    profile_note: String(formData.get("profile_note") || ""),
+    display_order: Number(formData.get("display_order") || 100),
+    image_data_url: imageDataUrl,
+    image_name: imageFile instanceof File ? imageFile.name : "",
+  };
+
+  submitButton.disabled = true;
+  submitButton.textContent = "Adding Faculty...";
+  setStatus(facultyFormStatus, "Saving faculty profile...", "loading");
+
+  try {
+    const result = await adminFetch("/faculty", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    facultyForm.reset();
+    document.getElementById("facultyExperience").value = "0";
+    document.getElementById("facultyDisplayOrder").value = "100";
+    setStatus(facultyFormStatus, result.message || "Faculty member added successfully.", "success");
+    showToast(result.message || "Faculty member added successfully.", "success");
+    await loadDashboardData();
+  } catch (error) {
+    setStatus(facultyFormStatus, error.message, "error");
+    showToast(error.message, "error");
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = "Add Faculty";
+  }
 });
 
 if (sessionStorage.getItem(TOKEN_KEY)) {

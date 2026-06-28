@@ -55,9 +55,16 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-app.use(express.json({ limit: "100kb" }));
+app.use(express.json({ limit: "4mb" }));
 app.use(express.urlencoded({ extended: false, limit: "100kb" }));
-app.use("/images", express.static(path.join(__dirname, "public", "images")));
+app.use(
+  "/images",
+  (req, res, next) => {
+    res.set("Cross-Origin-Resource-Policy", "cross-origin");
+    next();
+  },
+  express.static(path.join(__dirname, "public", "images"))
+);
 // Keep the frontend available locally and in production so page links work in both modes.
 app.use("/frontend", express.static(frontendDirectory));
 app.use(express.static(frontendDirectory));

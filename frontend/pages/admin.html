@@ -35,27 +35,32 @@
 
           <div class="admin-stats">
             <article class="admin-stat">
-              <span>Pending students</span><strong id="pendingStudentCount">0</strong>
+              <span>Pending Students</span><strong id="pendingStudentCount">0</strong>
             </article>
             <article class="admin-stat">
-              <span>Pending teachers</span><strong id="pendingTeacherCount">0</strong>
+              <span>Pending Teachers</span><strong id="pendingTeacherCount">0</strong>
             </article>
             <article class="admin-stat">
-              <span>Approved students</span><strong id="approvedStudentCount">0</strong>
+              <span>Approved Students</span><strong id="approvedStudentCount">0</strong>
             </article>
             <article class="admin-stat">
-              <span>Approved teachers</span><strong id="approvedTeacherCount">0</strong>
+              <span>Approved Teachers</span><strong id="approvedTeacherCount">0</strong>
             </article>
             <article class="admin-stat">
-              <span>Total pending</span><strong id="totalPendingCount">0</strong>
+              <span>Total Pending</span><strong id="totalPendingCount">0</strong>
             </article>
             <article class="admin-stat">
-              <span>Total approved</span><strong id="totalApprovedCount">0</strong>
+              <span>Total Approved</span><strong id="totalApprovedCount">0</strong>
             </article>
             <article class="admin-stat">
-              <span>Total submissions</span><strong id="totalCount">0</strong>
+              <span>Total Submissions</span><strong id="totalCount">0</strong>
+            </article>
+            <article class="admin-stat">
+              <span>Total Faculty</span><strong id="facultyCount">0</strong>
             </article>
           </div>
+
+          <div class="form-status" id="adminStatus" role="status" aria-live="polite"></div>
 
           <div class="admin-tabs" role="tablist">
             <button class="tab-button active" type="button" role="tab" data-tab="studentsPanel" aria-selected="true">
@@ -70,9 +75,10 @@
             <button class="tab-button" type="button" role="tab" data-tab="approvedTeachersPanel" aria-selected="false">
               Approved Teachers
             </button>
+            <button class="tab-button" type="button" role="tab" data-tab="facultyPanel" aria-selected="false">
+              Add Faculty
+            </button>
           </div>
-
-          <div class="form-status" id="adminStatus" role="status" aria-live="polite"></div>
 
           <section class="tab-panel" id="studentsPanel" role="tabpanel">
             <div class="table-card">
@@ -178,6 +184,82 @@
                     </tr>
                   </tbody>
                 </table>
+              </div>
+            </div>
+          </section>
+
+          <section class="tab-panel" id="facultyPanel" role="tabpanel" hidden>
+            <div>
+              <form class="form-shell" id="facultyForm" style="margin-bottom: 28px;">
+                <h2>Add Faculty Member</h2>
+                <p class="form-intro">
+                  Add a new tutor profile to the public faculty pages. Image upload is optional.
+                </p>
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label for="facultyName">Full name <span class="required">*</span></label>
+                    <input class="form-control" id="facultyName" name="name" required maxlength="100" />
+                  </div>
+                  <div class="form-group">
+                    <label for="facultyQualification">Qualification <span class="required">*</span></label>
+                    <input class="form-control" id="facultyQualification" name="qualification" required maxlength="200" />
+                  </div>
+                  <div class="form-group">
+                    <label for="facultyExperience">Experience Years <span class="required">*</span></label>
+                    <input class="form-control" id="facultyExperience" name="experience_years" type="number" min="0" max="80" required value="0" />
+                  </div>
+                  <div class="form-group">
+                    <label for="facultyDisplayOrder">Display Order <span class="required">*</span></label>
+                    <input class="form-control" id="facultyDisplayOrder" name="display_order" type="number" min="0" max="1000" required value="100" />
+                  </div>
+                  <div class="form-group full">
+                    <label for="facultySubjects">Subjects <span class="required">*</span></label>
+                    <input class="form-control" id="facultySubjects" name="subjects" required maxlength="255" placeholder="Mathematics, Physics, English..." />
+                  </div>
+                  <div class="form-group">
+                    <label for="facultyCity">City <span class="required">*</span></label>
+                    <select class="form-control" id="facultyCity" name="city" required>
+                      <option value="">Select city</option>
+                      <option>Islamabad/Rawalpindi</option>
+                      <option>Lahore</option>
+                      <option>Karachi</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="facultyImage">Image (optional)</label>
+                    <input class="form-control" id="facultyImage" name="image" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
+                  </div>
+                  <div class="form-group full">
+                    <label for="facultyProfileNote">Profile Note</label>
+                    <textarea class="form-control" id="facultyProfileNote" name="profile_note" maxlength="5000" placeholder="Short note about teaching style, experience, or strengths"></textarea>
+                  </div>
+                </div>
+                <div class="form-actions">
+                  <button class="btn btn-primary submit-button" type="submit">Add Faculty</button>
+                </div>
+                <div class="form-status" id="facultyFormStatus" role="status" aria-live="polite"></div>
+              </form>
+
+              <div class="table-card">
+                <div class="table-scroll">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>City</th>
+                        <th>Subjects</th>
+                        <th>Order</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="facultyTableBody">
+                      <tr>
+                        <td colspan="6" class="empty-state">Loading faculty...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </section>
