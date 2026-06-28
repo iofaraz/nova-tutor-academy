@@ -1,27 +1,39 @@
-const basePath = "/frontend/pages/";
+let isPagesSection = window.location.pathname.includes("/pages/");
+const siteRoot = isPagesSection ? "../" : "./";
+const basePath = `${siteRoot}pages/`;
+const homePath = `${siteRoot}index.html`;
+const assetPath = `${siteRoot}assets/`;
 
 const HEADER_HTML = `
 <header class="site-header" id="siteHeader">
   <div class="container nav-inner">
-    <a class="nav-brand" href="/frontend/index.html" aria-label="Nova Tutor Academy home">
-      <img src="/frontend/assets/brand identity.png" alt="Nova Tutor Academy">
+    <a class="nav-brand" href="${homePath}" aria-label="Nova Tutor Academy home">
+      <img src="${assetPath}brand identity.png" alt="Nova Tutor Academy">
     </a>
 
     <div class="nav-menu" id="navMenu">
       <ul class="nav-links">
-        <li><a href="/frontend/index.html">Home</a></li>
+        <li><a href="${homePath}">Home</a></li>
         <li class="has-dropdown">
-          <a href="#">Services<i class="fa-solid fa-angle-down" style="margin-left:4px"></i></a>
-          <ul class="dropdown-menu">
-            <li><a href="${basePath}home-tutor.html">Home tutoring</a></li>
-            <li><a href="${basePath}online-tutor.html">Online tutoring</a></li>
-            <li><a href="${basePath}international-tutor.html">International tutoring</a></li>
+          <a class="dropdown-trigger" href="#" aria-expanded="false" aria-controls="servicesMenu">
+            Services
+            <i class="fa-solid fa-angle-down" aria-hidden="true" style="margin-left:4px"></i>
+          </a>
+          <ul class="dropdown-menu" id="servicesMenu">
+            <li><a href="${basePath}home-tutor.html">Home Tutoring</a></li>
+            <li><a href="${basePath}online-tutor.html">Online Tutoring</a></li>
+            <li><a href="${basePath}international-tutor.html">International Tutoring</a></li>
           </ul>
         </li>
         <li><a href="${basePath}our-faculty.html">Faculty</a></li>
         <li><a href="${basePath}about.html">About</a></li>
         <li><a href="${basePath}contact.html">Contact</a></li>
+        <li><a href="${basePath}admin-signin.html">Admin</a></li>
       </ul>
+      <div class="nav-mobile-actions">
+        <a class="btn btn-secondary" href="${basePath}teach-with-us.html">Register as Tutor</a>
+        <a class="btn btn-primary" href="${basePath}request-tutor.html">Find a Tutor</a>
+      </div>
     </div>
     <div class="nav-actions">
       <a class="btn btn-secondary" href="${basePath}teach-with-us.html">Register as Tutor</a>
@@ -29,7 +41,9 @@ const HEADER_HTML = `
     </div>
 
     <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navMenu">
-      <span></span><span></span><span></span>
+      <span></span>
+      <span></span>
+      <span></span>
     </button>
   </div>
 </header>`;
@@ -39,10 +53,10 @@ const FOOTER_HTML = `
   <div class="container">
     <div class="footer-grid">
       <div class="footer-brand">
-        <a class="nav-brand" href="/frontend/index.html" aria-label="Nova Tutor Academy home">
-          <img src="/frontend/assets/brand identity.png" alt="Nova Tutor Academy">
+        <a class="nav-brand" href="${homePath}" aria-label="Nova Tutor Academy home">
+          <img src="${assetPath}brand identity.png" alt="Nova Tutor Academy">
         </a>
-        <p>Connecting students with trusted tutors across Islamabad, Rawalpindi, Lahore, and Karachi — and online worldwide.</p>
+        <p>Connecting students with trusted tutors across Islamabad, Rawalpindi, Lahore, and Karachi - and online worldwide.</p>
       </div>
       <div class="footer-col">
         <h4>Subjects</h4>
@@ -73,7 +87,7 @@ const FOOTER_HTML = `
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© ${new Date().getFullYear()} Nova Tutor Academy. All rights reserved.</span>
+      <span>&copy; ${new Date().getFullYear()} Nova Tutor Academy. All rights reserved.</span>
       <span>Islamabad · Rawalpindi · Lahore · Karachi</span>
     </div>
   </div>
@@ -100,22 +114,51 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const toggle = document.getElementById("navToggle");
   const menu = document.getElementById("navMenu");
+  const dropdownTriggers = document.querySelectorAll(".dropdown-trigger");
 
   function closeMenu() {
     if (!toggle || !menu) return;
     menu.classList.remove("open");
     toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-label", "Open menu");
     document.body.style.overflow = "";
+    dropdownTriggers.forEach((trigger) => {
+      trigger.setAttribute("aria-expanded", "false");
+    });
+    document.querySelectorAll(".has-dropdown.open").forEach((item) => {
+      item.classList.remove("open");
+    });
   }
 
   if (toggle && menu) {
     toggle.addEventListener("click", () => {
       const isOpen = menu.classList.toggle("open");
       toggle.setAttribute("aria-expanded", String(isOpen));
+      toggle.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
       document.body.style.overflow = isOpen ? "hidden" : "";
+      if (!isOpen) {
+        dropdownTriggers.forEach((trigger) => {
+          trigger.setAttribute("aria-expanded", "false");
+        });
+        document.querySelectorAll(".has-dropdown.open").forEach((item) => {
+          item.classList.remove("open");
+        });
+      }
     });
 
     document.addEventListener("click", (event) => {
+      const dropdownTrigger = event.target.closest(".dropdown-trigger");
+      if (dropdownTrigger) {
+        event.preventDefault();
+        const dropdown = dropdownTrigger.closest(".has-dropdown");
+        const isMobile = window.innerWidth <= 980;
+        if (isMobile && dropdown) {
+          const isExpanded = dropdown.classList.toggle("open");
+          dropdownTrigger.setAttribute("aria-expanded", String(isExpanded));
+        }
+        return;
+      }
+
       if (!toggle.contains(event.target) && !menu.contains(event.target)) {
         closeMenu();
       }

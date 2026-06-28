@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="../css/navbar.css" />
     <link rel="stylesheet" href="../css/forms.css" />
     <link rel="stylesheet" href="../css/cards.css" />
+    <script src="../js/form-utils.js" defer></script>
     <script src="../js/common.js" defer></script>
     <script src="../js/teacher-form.js" defer></script>
   </head>
@@ -114,17 +115,20 @@
                   type="tel"
                   required
                   maxlength="20"
+                  inputmode="tel"
+                  pattern="[0-9+\(\)\- ]{7,20}"
                   autocomplete="tel"
                   placeholder="+92 3XX XXXXXXX"
                 />
               </div>
               <div class="form-group full">
-                <label for="email">Email Address</label
+                <label for="email">Email Address <span class="required">*</span></label
                 ><input
                   class="form-control"
                   id="email"
                   name="email"
                   type="email"
+                  required
                   maxlength="150"
                   autocomplete="email"
                 />
@@ -136,6 +140,7 @@
                   <option>Islamabad/Rawalpindi</option>
                   <option>Lahore</option>
                   <option>Karachi</option>
+                  <option>Other</option>
                 </select>
               </div>
               <div class="form-group">
@@ -170,6 +175,7 @@
                   id="subjects"
                   name="subjects"
                   required
+                  maxlength="2000"
                   placeholder="e.g. Mathematics for O Level and A Level"
                 ></textarea>
               </div>

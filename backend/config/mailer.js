@@ -1,6 +1,7 @@
 const nodemailer = require("nodemailer");
 
 const mailEnabled = Boolean(process.env.MAIL_USER && process.env.MAIL_PASS);
+// Set MAIL_FROM in production so admin and candidate emails are branded correctly.
 
 const transporter = mailEnabled
   ? nodemailer.createTransport({
@@ -41,34 +42,55 @@ function detailsTable(details) {
   return `<table style="width:100%;border-collapse:collapse">${rows}</table>`;
 }
 
-async function sendNotification({ subject, heading, details, replyTo }) {
+function buildEmailHtml({ heading, intro, details, footer }) {
+  return `
+      <div style="font-family:Arial,sans-serif;background:#f7f9fc;padding:24px">
+        <div style="max-width:680px;margin:auto;background:#ffffff;border:1px solid #e5eaf1;border-radius:16px;overflow:hidden;color:#172033">
+          <div style="padding:22px 26px;background:linear-gradient(135deg,#0b1f47,#2b5ea7);color:#fff">
+            <h2 style="margin:0;color:#fff;font-size:22px">${escapeHtml(heading)}</h2>
+            <p style="margin:8px 0 0;color:rgba(255,255,255,0.86);font-size:14px;line-height:1.6">${escapeHtml(intro)}</p>
+          </div>
+          <div style="padding:20px 22px 12px">
+            ${detailsTable(details)}
+          </div>
+          <div style="padding:0 22px 22px;color:#5a6782;font-size:13px;line-height:1.7">
+            ${escapeHtml(footer)}
+          </div>
+        </div>
+      </div>`;
+}
+
+async function sendNotification({
+  to,
+  subject,
+  heading,
+  intro,
+  details,
+  replyTo,
+  footer,
+}) {
   if (!transporter) {
     console.info("Email notification skipped: mail credentials are not configured.");
     return { skipped: true };
   }
 
-  const recipient = process.env.MAIL_TO || process.env.MAIL_USER;
+  const recipient = to;
   return transporter.sendMail({
-    from: `"Nova Tutor Academy" <${process.env.MAIL_USER}>`,
+    from: `"Nova Tutor Academy" <${process.env.MAIL_FROM || process.env.MAIL_USER}>`,
     to: recipient,
     replyTo: replyTo || undefined,
     subject,
     text: [
       heading,
+      intro,
       "",
       ...Object.entries(details)
         .filter(([, value]) => value !== undefined && value !== null && value !== "")
         .map(([label, value]) => `${label}: ${value}`),
+      "",
+      footer || "",
     ].join("\n"),
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;color:#172033">
-        <div style="padding:22px 26px;background:#0b1f47;color:#fff;border-radius:14px 14px 0 0">
-          <h2 style="margin:0;color:#fff">${escapeHtml(heading)}</h2>
-        </div>
-        <div style="padding:18px 14px;border:1px solid #e5eaf1;border-top:0;border-radius:0 0 14px 14px">
-          ${detailsTable(details)}
-        </div>
-      </div>`,
+    html: buildEmailHtml({ heading, intro, details, footer }),
   });
 }
 
@@ -78,4 +100,16 @@ async function verifyMailer() {
   return true;
 }
 
-module.exports = { sendNotification, verifyMailer, mailEnabled };
+async function sendSubmissionEmails(messages) {
+  if (!transporter) {
+    return { skipped: true, results: [] };
+  }
+
+  const results = await Promise.allSettled(messages.map((message) => sendNotification(message)));
+  return {
+    sent: results.every((result) => result.status === "fulfilled"),
+    results,
+  };
+}
+
+module.exports = { sendNotification, sendSubmissionEmails, verifyMailer, mailEnabled };

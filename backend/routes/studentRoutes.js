@@ -1,8 +1,22 @@
 const express = require("express");
 const { pool } = require("../config/db");
-const { sendNotification } = require("../config/mailer");
+const { sendSubmissionEmails } = require("../config/mailer");
+const { createIpRateLimiter } = require("../middleware/rateLimit");
+const {
+  addFieldError,
+  cleanText,
+  isValidEmail,
+  isValidPhone,
+  normalizeEmail,
+} = require("../utils/validation");
 
 const router = express.Router();
+const submissionLimiter = createIpRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message:
+    "Too many tutor requests were submitted from this connection. Please wait a little and try again.",
+});
 
 const allowedCities = new Set([
   "Islamabad/Rawalpindi",
@@ -11,41 +25,42 @@ const allowedCities = new Set([
 ]);
 const allowedTutorTypes = new Set(["Home", "Online", "International"]);
 
-function clean(value, maxLength) {
-  if (value === undefined || value === null) return "";
-  return String(value).trim().slice(0, maxLength);
-}
-
-function isValidEmail(email) {
-  return !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-router.post("/request", async (req, res, next) => {
+router.post("/request", submissionLimiter, async (req, res, next) => {
   const request = {
-    name: clean(req.body.name, 100),
-    phone: clean(req.body.phone, 20),
-    email: clean(req.body.email, 150),
-    city: clean(req.body.city, 40),
-    tutor_type: clean(req.body.tutor_type, 20),
-    class_level: clean(req.body.class_level, 50),
-    curriculum: clean(req.body.curriculum, 100),
-    subjects: clean(req.body.subjects, 2000),
-    notes: clean(req.body.notes, 5000),
+    name: cleanText(req.body.name, 100),
+    phone: cleanText(req.body.phone, 20),
+    email: normalizeEmail(req.body.email),
+    city: cleanText(req.body.city, 40),
+    tutor_type: cleanText(req.body.tutor_type, 20),
+    class_level: cleanText(req.body.class_level, 50),
+    curriculum: cleanText(req.body.curriculum, 100, { allowEmpty: true }),
+    subjects: cleanText(req.body.subjects, 2000),
+    notes: cleanText(req.body.notes, 5000, { allowEmpty: true }),
   };
 
   const errors = [];
-  if (!request.name) errors.push("Name is required.");
-  if (!request.phone) errors.push("Phone number is required.");
-  if (!allowedCities.has(request.city)) errors.push("Please select a valid city.");
-  if (!allowedTutorTypes.has(request.tutor_type)) {
-    errors.push("Please select a valid tutor type.");
+  if (!request.name) addFieldError(errors, "name", "Name is required.");
+  if (!isValidPhone(request.phone)) {
+    addFieldError(errors, "phone", "Enter a valid phone number.");
   }
-  if (!request.class_level) errors.push("Class or level is required.");
-  if (!request.subjects) errors.push("At least one subject is required.");
-  if (!isValidEmail(request.email)) errors.push("Please enter a valid email address.");
+  if (!isValidEmail(request.email)) {
+    addFieldError(errors, "email", "Please enter a valid email address.");
+  }
+  if (!allowedCities.has(request.city)) {
+    addFieldError(errors, "city", "Please select a valid city.");
+  }
+  if (!allowedTutorTypes.has(request.tutor_type)) {
+    addFieldError(errors, "tutor_type", "Please select a valid tutor type.");
+  }
+  if (!request.class_level) {
+    addFieldError(errors, "class_level", "Class or level is required.");
+  }
+  if (!request.subjects) {
+    addFieldError(errors, "subjects", "At least one subject is required.");
+  }
 
   if (errors.length) {
-    return res.status(400).json({ message: errors[0], errors });
+    return res.status(400).json({ message: errors[0].message, errors });
   }
 
   try {
@@ -66,29 +81,57 @@ router.post("/request", async (req, res, next) => {
       ]
     );
 
-    sendNotification({
-      subject: `New tutor request: ${request.name}`,
-      heading: "New student tutor request",
-      replyTo: request.email,
-      details: {
-        "Request ID": result.insertId,
-        Name: request.name,
-        Phone: request.phone,
-        Email: request.email,
-        City: request.city,
-        "Tutor type": request.tutor_type,
-        "Class / level": request.class_level,
-        Curriculum: request.curriculum,
-        Subjects: request.subjects,
-        Notes: request.notes,
-      },
-    }).catch((error) => {
-      console.error("Student notification email failed:", error.message);
-    });
+    const adminEmail = process.env.MAIL_USER;
+    const emailResult = await sendSubmissionEmails(
+      [
+        adminEmail && {
+          to: adminEmail,
+          subject: `New tutor request: ${request.name}`,
+          heading: "New student tutor request",
+          intro: "A new tutoring request has been submitted through the website.",
+          replyTo: request.email,
+          details: {
+            "Request ID": result.insertId,
+            Name: request.name,
+            Phone: request.phone,
+            Email: request.email,
+            City: request.city,
+            "Tutor type": request.tutor_type,
+            "Class / level": request.class_level,
+            Curriculum: request.curriculum || "Not specified",
+            Subjects: request.subjects,
+            Notes: request.notes || "No additional notes",
+          },
+          footer:
+            "This submission was created from the Nova Tutor Academy request form. Follow up with the candidate when appropriate.",
+        },
+        {
+          to: request.email,
+          subject: "We received your tutor request",
+          heading: "Tutor request received",
+          intro:
+            "Thank you for reaching out. We have received your request and will contact you soon with suitable tutor options.",
+          details: {
+            Name: request.name,
+            City: request.city,
+            "Tutor type": request.tutor_type,
+            "Class / level": request.class_level,
+            Subjects: request.subjects,
+          },
+          footer:
+            "If you need to update any details, simply reply to this email and our team will help.",
+        },
+      ].filter(Boolean)
+    );
 
     return res.status(201).json({
-      message: "Tutor request submitted successfully.",
+      message: emailResult?.sent
+        ? "Tutor request submitted successfully. A confirmation email has been sent."
+        : emailResult?.skipped
+          ? "Tutor request submitted successfully. Email confirmations are not configured right now."
+          : "Tutor request submitted successfully, but the confirmation email could not be sent right now.",
       requestId: result.insertId,
+      emailStatus: emailResult?.skipped ? "skipped" : emailResult?.sent ? "sent" : "partial",
     });
   } catch (error) {
     return next(error);

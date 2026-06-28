@@ -1,71 +1,17 @@
 const facultyGrid = document.getElementById("facultyGrid");
+const homeFacultyGrid = document.getElementById("homeFacultyGrid");
 const facultyStatus = document.getElementById("facultyStatus");
 const facultySearch = document.getElementById("facultySearch");
 
 const isLocalFrontend =
   window.location.protocol === "file:" ||
   ["localhost", "127.0.0.1"].includes(window.location.hostname);
-const API_BASE = isLocalFrontend ? "http://localhost:5000/api" : "/api";
-const API_ORIGIN = isLocalFrontend
-  ? "http://localhost:5000"
-  : window.location.origin;
-
-const fallbackFaculty = [
-  {
-    name: "Ayesha Siddiqui",
-    qualification: "MSc Mathematics, BEd",
-    experience_years: 8,
-    subjects: "Mathematics, O/A Level, Entry Test",
-    city: "Islamabad/Rawalpindi",
-    profile_note:
-      "Known for calm explanations, structured practice, and confidence-building exam preparation.",
-  },
-  {
-    name: "Hamza Ahmed",
-    qualification: "MPhil Physics",
-    experience_years: 7,
-    subjects: "Physics, FSc, A Level",
-    city: "Lahore",
-    profile_note:
-      "Helps students connect formulas with real concepts through examples, diagrams, and targeted revision.",
-  },
-  {
-    name: "Maryam Khan",
-    qualification: "MA English Literature, CELTA",
-    experience_years: 9,
-    subjects: "English, IELTS, Grammar, Literature",
-    city: "Karachi",
-    profile_note:
-      "Focuses on fluent communication, writing clarity, and practical language improvement.",
-  },
-  {
-    name: "Bilal Raza",
-    qualification: "BS Computer Science",
-    experience_years: 6,
-    subjects: "Computer Science, Programming, Web Basics",
-    city: "Online",
-    profile_note:
-      "Teaches coding through simple projects, problem-solving habits, and step-by-step debugging.",
-  },
-  {
-    name: "Sara Noor",
-    qualification: "MSc Chemistry",
-    experience_years: 10,
-    subjects: "Chemistry, Biology, O Level Science",
-    city: "Islamabad/Rawalpindi",
-    profile_note:
-      "Makes science easier with visual explanations, topic maps, and regular concept checks.",
-  },
-  {
-    name: "Usman Tariq",
-    qualification: "MBA Finance, ACCA Finalist",
-    experience_years: 7,
-    subjects: "Accounting, Business Studies, Economics",
-    city: "Online",
-    profile_note:
-      "Supports commerce students with exam-focused practice and clear real-world examples.",
-  },
-];
+const API_ORIGIN = isLocalFrontend ? "http://localhost:5000" : window.location.origin;
+isPagesSection = window.location.pathname.includes("/pages/");
+const SITE_LOGO_URL = `${isPagesSection ? "../" : "./"}assets/logo.png`;
+const LOCAL_API_BASE_FALLBACKS = isLocalFrontend
+  ? ["http://localhost:5000/api", "http://127.0.0.1:5000/api"]
+  : ["/api"];
 
 let allFaculty = [];
 
@@ -90,7 +36,7 @@ function initials(name) {
 
 function experienceLabel(years) {
   const count = Number(years || 0);
-  return `${count}+ year${count === 1 ? "" : "s"}`;
+  return `${count}+ Year${count === 1 ? "" : "s"}`;
 }
 
 function facultyImageUrl(imagePath) {
@@ -98,12 +44,114 @@ function facultyImageUrl(imagePath) {
   return new URL(imagePath, `${API_ORIGIN}/`).href;
 }
 
-function renderFaculty(faculty) {
+function facultySubjectTags(subjects) {
+  const values = String(subjects || "")
+    .split(/[,/|•\n]+/)
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  if (!values.length) {
+    return '<span class="faculty-tag">Multiple subjects</span>';
+  }
+
+  return values
+    .map((subject) => `<span class="faculty-tag">${escapeHtml(subject)}</span>`)
+    .join("");
+}
+
+function facultyCardMarkup(member) {
+  const imageUrl = member.image_path ? escapeHtml(facultyImageUrl(member.image_path)) : "";
+  const initialsMarkup = escapeHtml(initials(member.name));
+
+  return `
+    <article class="faculty-card">
+      <div class="faculty-hero">
+        <div class="faculty-hero-image">
+          <div class="faculty-hero-brand" aria-hidden="true">
+            <img src="${escapeHtml(SITE_LOGO_URL)}" alt="" loading="lazy">
+          </div>
+          <div class="faculty-hero-overlay"></div>
+          <span class="faculty-badge">Faculty Member</span>
+        </div>
+
+        <div class="faculty-avatar">
+          ${
+            imageUrl
+              ? `<img src="${imageUrl}" alt="${escapeHtml(member.name)}" loading="lazy">`
+              : `<span aria-hidden="true">${initialsMarkup}</span>`
+          }
+        </div>
+      </div>
+
+      <div class="faculty-content">
+        <h3>${escapeHtml(member.name)}</h3>
+
+        <div class="faculty-divider" aria-hidden="true">
+          <span></span>
+          <span class="divider-icon">🎓</span>
+          <span></span>
+        </div>
+
+        <div class="faculty-info">
+          <div class="info-item">
+            <span class="info-label">Qualification</span>
+            <span class="info-separator" aria-hidden="true"></span>
+            <strong>${escapeHtml(member.qualification || "—")}</strong>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label">Experience</span>
+            <span class="info-separator" aria-hidden="true"></span>
+            <strong>${escapeHtml(experienceLabel(member.experience_years))}</strong>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label">Subjects</span>
+            <span class="info-separator" aria-hidden="true"></span>
+            <div class="faculty-subjects">
+              ${facultySubjectTags(member.subjects)}
+            </div>
+          </div>
+        </div>
+
+        <div class="faculty-divider faculty-divider-quote" aria-hidden="true">
+          <span></span>
+          <span class="divider-icon">❝</span>
+          <span></span>
+        </div>
+
+        <p class="faculty-description">
+          ${escapeHtml(member.profile_note || "Available for focused personal tutoring.")}
+        </p>
+      </div>
+    </article>
+  `;
+}
+
+async function fetchJsonWithFallback(endpoint) {
+  let lastError = null;
+
+  for (const baseUrl of LOCAL_API_BASE_FALLBACKS) {
+    try {
+      const response = await fetch(`${baseUrl}${endpoint}`);
+      if (!response.ok) {
+        throw new Error("Faculty endpoint is unavailable.");
+      }
+      return await response.json();
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error("Faculty endpoint is unavailable.");
+}
+
+function renderDirectoryFaculty(faculty) {
   if (!facultyGrid || !facultyStatus) return;
 
   if (!faculty.length) {
     facultyGrid.innerHTML = "";
-    facultyStatus.textContent = "No faculty profiles matched your search.";
+    facultyStatus.textContent = "No faculty profiles are available right now.";
     return;
   }
 
@@ -112,47 +160,31 @@ function renderFaculty(faculty) {
   }.`;
 
   facultyGrid.innerHTML = faculty
-    .map(
-      (member) => `
-        <article class="faculty-card">
-          <div class="faculty-avatar">
-            <span aria-hidden="true">${escapeHtml(initials(member.name))}</span>
-            ${
-              member.image_path
-                ? `<img src="${escapeHtml(facultyImageUrl(member.image_path))}" alt="${escapeHtml(member.name)}" loading="lazy" onerror="this.remove()">`
-                : ""
-            }
-          </div>
-          <h3>${escapeHtml(member.name)}</h3>
-          <dl class="faculty-meta">
-            <div>
-              <dt>Qualification</dt>
-              <dd>${escapeHtml(member.qualification)}</dd>
-            </div>
-            <div>
-              <dt>Experience</dt>
-              <dd>${escapeHtml(experienceLabel(member.experience_years))}</dd>
-            </div>
-            <div>
-              <dt>Subjects</dt>
-              <dd>${escapeHtml(member.subjects || "Multiple subjects")}</dd>
-            </div>
-          </dl>
-          <p class="faculty-note">${escapeHtml(member.profile_note || "Available for focused personal tutoring.")}</p>
-        </article>
-      `
-    )
+    .map((member) => facultyCardMarkup(member))
+    .join("");
+}
+
+function renderHomeFaculty(faculty) {
+  if (!homeFacultyGrid) return;
+
+  if (!faculty.length) {
+    homeFacultyGrid.innerHTML = '<p class="notice">Faculty profiles will appear here once they are added.</p>';
+    return;
+  }
+
+  homeFacultyGrid.innerHTML = faculty
+    .map((member) => facultyCardMarkup(member))
     .join("");
 }
 
 function filterFaculty() {
   const query = facultySearch?.value.trim().toLowerCase() || "";
   if (!query) {
-    renderFaculty(allFaculty);
+    renderDirectoryFaculty(allFaculty);
     return;
   }
 
-  renderFaculty(
+  renderDirectoryFaculty(
     allFaculty.filter((member) =>
       [
         member.name,
@@ -171,22 +203,26 @@ function filterFaculty() {
 
 async function loadFaculty() {
   try {
-    const response = await fetch(`${API_BASE}/faculty`);
-    if (!response.ok) throw new Error("Faculty endpoint is unavailable.");
+    if (facultyGrid) {
+      const directoryData = await fetchJsonWithFallback("/faculty");
+      allFaculty = Array.isArray(directoryData.faculty) ? directoryData.faculty : [];
+      renderDirectoryFaculty(allFaculty);
+    }
 
-    const data = await response.json();
-    allFaculty = Array.isArray(data.faculty) && data.faculty.length
-      ? data.faculty
-      : fallbackFaculty;
+    if (homeFacultyGrid) {
+      const homeData = await fetchJsonWithFallback("/faculty?limit=4&random=1");
+      const homeFaculty = Array.isArray(homeData.faculty) ? homeData.faculty : [];
+      renderHomeFaculty(homeFaculty);
+    }
   } catch (error) {
-    allFaculty = fallbackFaculty;
-    if (facultyStatus) {
-      facultyStatus.textContent =
-        "Showing sample faculty profiles. Start the backend and update the database to load live data.";
+    if (facultyGrid && facultyStatus) {
+      facultyStatus.textContent = "Faculty profiles are unavailable right now.";
+      facultyGrid.innerHTML = "";
+    }
+    if (homeFacultyGrid) {
+      homeFacultyGrid.innerHTML = '<p class="notice">Faculty profiles are unavailable right now.</p>';
     }
   }
-
-  renderFaculty(allFaculty);
 }
 
 facultySearch?.addEventListener("input", filterFaculty);
