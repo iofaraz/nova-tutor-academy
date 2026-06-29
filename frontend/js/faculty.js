@@ -48,15 +48,43 @@ function facultySubjectTags(subjects) {
   const values = String(subjects || "")
     .split(/[,/|•\n]+/)
     .map((value) => value.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter(
+      (value, index, subjectsList) =>
+        subjectsList.findIndex(
+          (subject) => subject.toLowerCase() === value.toLowerCase()
+        ) === index
+    );
 
   if (!values.length) {
     return '<span class="faculty-tag">Multiple subjects</span>';
   }
 
-  return values
+  const visibleLimit = 3;
+  const visibleTags = values
+    .slice(0, visibleLimit)
     .map((subject) => `<span class="faculty-tag">${escapeHtml(subject)}</span>`)
     .join("");
+
+  if (values.length <= visibleLimit) {
+    return visibleTags;
+  }
+
+  const hiddenValues = values.slice(visibleLimit);
+  const hiddenTags = hiddenValues
+    .map((subject) => `<span class="faculty-tag">${escapeHtml(subject)}</span>`)
+    .join("");
+
+  return `
+    ${visibleTags}
+    <details class="faculty-subjects-more">
+      <summary aria-label="Toggle ${hiddenValues.length} additional subjects">
+        <span class="subjects-more-label">+${hiddenValues.length} more</span>
+        <span class="subjects-less-label">Show less</span>
+      </summary>
+      <div class="faculty-subjects-extra">${hiddenTags}</div>
+    </details>
+  `;
 }
 
 function facultyCardMarkup(member) {
@@ -105,7 +133,7 @@ function facultyCardMarkup(member) {
             <strong>${escapeHtml(experienceLabel(member.experience_years))}</strong>
           </div>
 
-          <div class="info-item">
+          <div class="info-item subjects-item">
             <span class="info-label">Subjects</span>
             <span class="info-separator" aria-hidden="true"></span>
             <div class="faculty-subjects">
