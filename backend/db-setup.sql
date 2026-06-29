@@ -110,8 +110,23 @@ CREATE TABLE IF NOT EXISTS faculty_members (
 );
 
 -- Keep existing databases in sync when this setup script is run again.
-ALTER TABLE faculty_members
-  ADD COLUMN IF NOT EXISTS image_path VARCHAR(255) AFTER profile_note;
+-- Use a conditional prepared statement for compatibility with MySQL versions
+-- that do not support ADD COLUMN IF NOT EXISTS.
+SET @image_path_exists = (
+  SELECT COUNT(*)
+  FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'faculty_members'
+    AND COLUMN_NAME = 'image_path'
+);
+SET @image_path_migration = IF(
+  @image_path_exists = 0,
+  'ALTER TABLE faculty_members ADD COLUMN image_path VARCHAR(255) AFTER profile_note',
+  'SELECT 1'
+);
+PREPARE image_path_statement FROM @image_path_migration;
+EXECUTE image_path_statement;
+DEALLOCATE PREPARE image_path_statement;
 
 -- -- Development fallback: admin / admin123
 -- -- ADMIN_USERNAME and ADMIN_PASSWORD in .env take priority.
