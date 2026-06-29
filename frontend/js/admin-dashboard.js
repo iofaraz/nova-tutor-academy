@@ -327,7 +327,7 @@ async function loadDashboardData() {
 async function mutateAndRefresh(path, options, successMessage) {
   try {
     const response = await adminFetch(path, options);
-    showToast(successMessage || response.message || "Updated successfully.", "success");
+    showToast(response.message || successMessage || "Updated successfully.", "success");
     await loadDashboardData();
   } catch (error) {
     showToast(error.message, "error");

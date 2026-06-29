@@ -645,11 +645,26 @@ footer {
 }
 
 @media (max-width: 600px) {
+  :root { --section-py: 48px; }
+  .container { padding-inline: 18px; }
   h1 { font-size: 1.75rem; }
+  .page-hero { padding-block: 52px 48px; }
   .stats { grid-template-columns: 1fr 1fr; }
   .footer-grid { grid-template-columns: 1fr; }
   .cta-box { padding: 28px 20px; }
   .visual-card.float { display: none; }
+  .back-to-top {
+    right: 14px;
+    bottom: 72px;
+    width: 44px;
+    height: 44px;
+  }
+  .whatsapp-float {
+    right: 14px;
+    bottom: 16px;
+    width: 48px;
+    height: 48px;
+  }
 }
 
 /* Reference-inspired homepage refresh */
@@ -1162,7 +1177,12 @@ a:hover {
   }
 
   .hero-content h1 {
-    font-size: 2.35rem;
+    font-size: clamp(2.05rem, 10vw, 2.35rem);
+  }
+
+  .hero-content .button-row .btn,
+  .page-hero .button-row .btn {
+    flex: 1 1 150px;
   }
 
   .hero-overview-card,

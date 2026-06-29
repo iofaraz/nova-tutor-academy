@@ -4,6 +4,7 @@ const path = require("path");
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const { pool } = require("../config/db");
+const { sendNotification } = require("../config/mailer");
 const { createIpRateLimiter } = require("../middleware/rateLimit");
 
 const router = express.Router();
@@ -184,6 +185,42 @@ async function deleteRow(table, id) {
   return result.affectedRows > 0;
 }
 
+async function sendApprovalConfirmation({
+  recipient,
+  subject,
+  heading,
+  intro,
+  details,
+  footer,
+}) {
+  if (!recipient) return "skipped";
+
+  try {
+    const result = await sendNotification({
+      to: recipient,
+      subject,
+      heading,
+      intro,
+      details,
+      footer,
+    });
+    return result?.skipped ? "skipped" : "sent";
+  } catch (error) {
+    console.warn("Approval confirmation email failed:", error.message);
+    return "failed";
+  }
+}
+
+function approvalMessage(recordLabel, emailStatus) {
+  if (emailStatus === "sent") {
+    return `${recordLabel} approved successfully. A confirmation email has been sent.`;
+  }
+  if (emailStatus === "skipped") {
+    return `${recordLabel} approved successfully. Email confirmation is not configured right now.`;
+  }
+  return `${recordLabel} approved successfully, but the confirmation email could not be sent right now.`;
+}
+
 function resolveFacultyImagePath(imagePath) {
   if (!imagePath) return null;
   const normalizedPath = String(imagePath).replace(/^\/+/, "");
@@ -350,9 +387,27 @@ router.post("/students/:id/approve", requireAdmin, async (req, res, next) => {
       return res.status(404).json({ message: "Student request not found." });
     }
 
+    const emailStatus = await sendApprovalConfirmation({
+      recipient: request.email,
+      subject: "Your tutor request has been approved",
+      heading: "Tutor request approved",
+      intro:
+        "Good news! Your tutoring request has been reviewed, approved, and confirmed by Nova Tutor Academy.",
+      details: {
+        Name: request.name,
+        "Tutor type": request.tutor_type,
+        "Class / level": request.class_level,
+        Subjects: request.subjects,
+        City: request.city,
+      },
+      footer:
+        "Our team will contact you with the next steps and suitable tutor options. If you need to update any details, reply to this email.",
+    });
+
     return res.json({
-      message: "Student request approved successfully.",
+      message: approvalMessage("Student request", emailStatus),
       student: request,
+      emailStatus,
     });
   } catch (error) {
     return next(error);
@@ -461,9 +516,30 @@ router.post("/teachers/:id/approve", requireAdmin, async (req, res, next) => {
       return res.status(404).json({ message: "Teacher application not found." });
     }
 
+    const emailStatus = await sendApprovalConfirmation({
+      recipient: request.email,
+      subject: "Your tutor application has been approved",
+      heading: "Tutor application approved",
+      intro:
+        "Congratulations! Your tutor application has been reviewed, approved, and confirmed by Nova Tutor Academy.",
+      details: {
+        Name: request.name,
+        Subjects: request.subjects,
+        Qualification: request.qualification,
+        Experience:
+          request.experience_years === null
+            ? "Not specified"
+            : `${request.experience_years} year(s)`,
+        City: request.city,
+      },
+      footer:
+        "Our team will contact you when a suitable tutoring opportunity is available. Please reply to this email if any profile details change.",
+    });
+
     return res.json({
-      message: "Teacher application approved successfully.",
+      message: approvalMessage("Teacher application", emailStatus),
       teacher: request,
+      emailStatus,
     });
   } catch (error) {
     return next(error);

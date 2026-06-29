@@ -55,9 +55,9 @@ studentForm?.addEventListener("submit", async (event) => {
       "success"
     );
   } catch (error) {
-    const offlineMessage = isLocalFrontend()
+    const offlineMessage = isLocalFrontend() && error instanceof TypeError
       ? "The form is ready, but the backend must be running on localhost:5000 to receive it."
-      : error.message;
+      : error.message || "We could not submit your request right now.";
     setFormStatus(studentStatus, offlineMessage, "error");
   } finally {
     submitButton.disabled = false;

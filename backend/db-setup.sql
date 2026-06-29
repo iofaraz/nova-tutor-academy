@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS teacher_applications (
   name              VARCHAR(100) NOT NULL,
   phone             VARCHAR(20) NOT NULL,
   email             VARCHAR(150),
-  city              ENUM('Islamabad/Rawalpindi', 'Lahore', 'Karachi') NOT NULL,
+  city              ENUM('Islamabad/Rawalpindi', 'Lahore', 'Karachi', 'Other') NOT NULL,
   subjects          TEXT NOT NULL,
   experience_years  INT UNSIGNED,
   qualification     VARCHAR(200) NOT NULL,
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS teachers (
   name                VARCHAR(100) NOT NULL,
   phone               VARCHAR(20) NOT NULL,
   email               VARCHAR(150),
-  city                ENUM('Islamabad/Rawalpindi', 'Lahore', 'Karachi') NOT NULL,
+  city                ENUM('Islamabad/Rawalpindi', 'Lahore', 'Karachi', 'Other') NOT NULL,
   subjects            TEXT NOT NULL,
   experience_years    INT UNSIGNED,
   qualification       VARCHAR(200) NOT NULL,
@@ -127,6 +127,23 @@ SET @image_path_migration = IF(
 PREPARE image_path_statement FROM @image_path_migration;
 EXECUTE image_path_statement;
 DEALLOCATE PREPARE image_path_statement;
+
+-- Keep teacher city options aligned with the application form.
+ALTER TABLE teacher_applications
+  MODIFY COLUMN city ENUM(
+    'Islamabad/Rawalpindi',
+    'Lahore',
+    'Karachi',
+    'Other'
+  ) NOT NULL;
+
+ALTER TABLE teachers
+  MODIFY COLUMN city ENUM(
+    'Islamabad/Rawalpindi',
+    'Lahore',
+    'Karachi',
+    'Other'
+  ) NOT NULL;
 
 -- -- Development fallback: admin / admin123
 -- -- ADMIN_USERNAME and ADMIN_PASSWORD in .env take priority.

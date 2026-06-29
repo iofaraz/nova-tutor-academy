@@ -22,6 +22,7 @@ const allowedCities = new Set([
   "Islamabad/Rawalpindi",
   "Lahore",
   "Karachi",
+  "Other",
 ]);
 
 router.post("/apply", submissionLimiter, async (req, res, next) => {

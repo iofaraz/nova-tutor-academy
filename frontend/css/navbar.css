@@ -230,6 +230,7 @@ footer a:hover {
     right: 18px;
     left: 18px;
     max-height: calc(100vh - 86px);
+    max-height: calc(100dvh - 86px);
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
@@ -330,6 +331,10 @@ footer a:hover {
 
   .nav-menu {
     top: 80px;
+    right: 12px;
+    left: 12px;
+    max-height: calc(100vh - 80px);
+    max-height: calc(100dvh - 80px);
   }
 
   .nav-mobile-actions {
