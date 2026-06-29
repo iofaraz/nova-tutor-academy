@@ -197,6 +197,42 @@ function resolveFacultyImagePath(imagePath) {
   return absolutePath;
 }
 
+async function saveFacultyImage(name, imageDataUrl) {
+  if (!imageDataUrl) return null;
+
+  const parsed = parseImageDataUrl(imageDataUrl);
+  await fs.mkdir(facultyImageDirectory, { recursive: true });
+  const safeBaseName =
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 40) || "faculty";
+  const extension = fileExtensionForMime(parsed.mimeType);
+  const uniqueSuffix = `${Date.now()}-${crypto.randomBytes(4).toString("hex")}`;
+  const fileName = `${safeBaseName}-${uniqueSuffix}.${extension}`;
+  const absolutePath = path.join(facultyImageDirectory, fileName);
+  await fs.writeFile(absolutePath, parsed.buffer);
+
+  return {
+    publicPath: `/images/faculty/${fileName}`,
+    absolutePath,
+  };
+}
+
+async function removeFacultyImage(imagePath) {
+  const absolutePath = resolveFacultyImagePath(imagePath);
+  if (!absolutePath) return;
+
+  try {
+    await fs.unlink(absolutePath);
+  } catch (error) {
+    if (error.code !== "ENOENT") {
+      console.warn("Unable to delete faculty image:", error.message);
+    }
+  }
+}
+
 router.get("/faculty", requireAdmin, async (req, res, next) => {
   try {
     const faculty = await fetchRows(
@@ -489,16 +525,7 @@ router.delete("/faculty/:id", requireAdmin, async (req, res, next) => {
       return res.status(404).json({ message: "Faculty member not found." });
     }
 
-    const imageAbsolutePath = resolveFacultyImagePath(faculty.image_path);
-    if (imageAbsolutePath) {
-      try {
-        await fs.unlink(imageAbsolutePath);
-      } catch (error) {
-        if (error.code !== "ENOENT") {
-          console.warn("Unable to delete faculty image:", error.message);
-        }
-      }
-    }
+    await removeFacultyImage(faculty.image_path);
 
     return res.json({ message: "Faculty member deleted permanently." });
   } catch (error) {
@@ -506,7 +533,12 @@ router.delete("/faculty/:id", requireAdmin, async (req, res, next) => {
   }
 });
 
-router.post("/faculty", requireAdmin, async (req, res, next) => {
+router.put("/faculty/:id", requireAdmin, async (req, res, next) => {
+  const facultyId = Number(req.params.id);
+  if (!Number.isInteger(facultyId) || facultyId <= 0) {
+    return res.status(400).json({ message: "Invalid faculty id." });
+  }
+
   const name = clean(req.body.name, 100);
   const qualification = clean(req.body.qualification, 200);
   const subjects = clean(req.body.subjects, 255);
@@ -515,7 +547,7 @@ router.post("/faculty", requireAdmin, async (req, res, next) => {
   const displayOrder = cleanNumeric(req.body.display_order, 100);
   const experienceYears = cleanNumeric(req.body.experience_years, 0);
   const imageDataUrl = clean(req.body.image_data_url, 5000000);
-  const imageName = clean(req.body.image_name, 200);
+  const isActive = req.body.is_active === undefined ? true : Boolean(req.body.is_active);
 
   if (!name || !qualification || !subjects) {
     return res.status(400).json({
@@ -535,28 +567,24 @@ router.post("/faculty", requireAdmin, async (req, res, next) => {
     });
   }
 
-  let imagePath = null;
-  if (imageDataUrl) {
-    const parsed = parseImageDataUrl(imageDataUrl);
-    await fs.mkdir(facultyImageDirectory, { recursive: true });
-    const safeBaseName = name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 40) || "faculty";
-    const extension = fileExtensionForMime(parsed.mimeType);
-    const uniqueSuffix = `${Date.now()}-${crypto.randomBytes(4).toString("hex")}`;
-    const fileName = `${safeBaseName}-${uniqueSuffix}.${extension}`;
-    const absolutePath = path.join(facultyImageDirectory, fileName);
-    await fs.writeFile(absolutePath, parsed.buffer);
-    imagePath = `/images/faculty/${fileName}`;
-  }
-
+  let savedImage = null;
   try {
+    const [rows] = await pool.execute(
+      "SELECT image_path FROM faculty_members WHERE id = ? LIMIT 1",
+      [facultyId]
+    );
+    const faculty = rows[0];
+    if (!faculty) {
+      return res.status(404).json({ message: "Faculty member not found." });
+    }
+
+    savedImage = await saveFacultyImage(name, imageDataUrl);
+    const imagePath = savedImage?.publicPath || faculty.image_path || null;
     const [result] = await pool.execute(
-      `INSERT INTO faculty_members
-        (name, qualification, experience_years, subjects, city, profile_note, image_path, display_order, is_active)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+      `UPDATE faculty_members
+       SET name = ?, qualification = ?, experience_years = ?, subjects = ?,
+           city = ?, profile_note = ?, image_path = ?, display_order = ?, is_active = ?
+       WHERE id = ?`,
       [
         name,
         qualification,
@@ -566,15 +594,87 @@ router.post("/faculty", requireAdmin, async (req, res, next) => {
         profileNote || null,
         imagePath,
         displayOrder,
+        isActive ? 1 : 0,
+        facultyId,
+      ]
+    );
+
+    if (result.affectedRows === 0) {
+      if (savedImage) await removeFacultyImage(savedImage.publicPath);
+      return res.status(404).json({ message: "Faculty member not found." });
+    }
+
+    if (savedImage && faculty.image_path) {
+      await removeFacultyImage(faculty.image_path);
+    }
+
+    return res.json({
+      message: "Faculty member updated successfully.",
+      facultyId,
+      imagePath,
+    });
+  } catch (error) {
+    if (savedImage) await removeFacultyImage(savedImage.publicPath);
+    return next(error);
+  }
+});
+
+router.post("/faculty", requireAdmin, async (req, res, next) => {
+  const name = clean(req.body.name, 100);
+  const qualification = clean(req.body.qualification, 200);
+  const subjects = clean(req.body.subjects, 255);
+  const city = clean(req.body.city, 100);
+  const profileNote = clean(req.body.profile_note, 5000);
+  const displayOrder = cleanNumeric(req.body.display_order, 100);
+  const experienceYears = cleanNumeric(req.body.experience_years, 0);
+  const imageDataUrl = clean(req.body.image_data_url, 5000000);
+  const isActive = req.body.is_active === undefined ? true : Boolean(req.body.is_active);
+
+  if (!name || !qualification || !subjects) {
+    return res.status(400).json({
+      message: "Name, qualification, and subjects are required.",
+    });
+  }
+
+  if (!Number.isInteger(displayOrder) || displayOrder < 0 || displayOrder > 1000) {
+    return res.status(400).json({
+      message: "Display order must be a whole number between 0 and 1000.",
+    });
+  }
+
+  if (!Number.isInteger(experienceYears) || experienceYears < 0 || experienceYears > 80) {
+    return res.status(400).json({
+      message: "Experience must be a whole number between 0 and 80.",
+    });
+  }
+
+  let savedImage = null;
+  try {
+    savedImage = await saveFacultyImage(name, imageDataUrl);
+    const [result] = await pool.execute(
+      `INSERT INTO faculty_members
+        (name, qualification, experience_years, subjects, city, profile_note, image_path, display_order, is_active)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        name,
+        qualification,
+        experienceYears,
+        subjects,
+        city || null,
+        profileNote || null,
+        savedImage?.publicPath || null,
+        displayOrder,
+        isActive ? 1 : 0,
       ]
     );
 
     return res.status(201).json({
       message: "Faculty member added successfully.",
       facultyId: result.insertId,
-      imagePath,
+      imagePath: savedImage?.publicPath || null,
     });
   } catch (error) {
+    if (savedImage) await removeFacultyImage(savedImage.publicPath);
     return next(error);
   }
 });

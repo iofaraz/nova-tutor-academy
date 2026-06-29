@@ -10,6 +10,9 @@ const dashboardReady = document.getElementById("dashboardReady");
 const facultyForm = document.getElementById("facultyForm");
 const facultyFormStatus = document.getElementById("facultyFormStatus");
 const facultyTableBody = document.getElementById("facultyTableBody");
+const facultyFormTitle = document.getElementById("facultyFormTitle");
+const facultyFormIntro = document.getElementById("facultyFormIntro");
+const cancelFacultyEdit = document.getElementById("cancelFacultyEdit");
 const confirmModal = document.getElementById("adminConfirmModal");
 const confirmTitle = document.getElementById("adminConfirmTitle");
 const confirmMessage = document.getElementById("adminConfirmMessage");
@@ -17,6 +20,7 @@ const confirmYes = document.getElementById("confirmYes");
 const confirmNo = document.getElementById("confirmNo");
 let toastTimer = null;
 let pendingConfirmAction = null;
+let editingFacultyId = null;
 let adminState = {
   pendingStudents: [],
   pendingTeachers: [],
@@ -244,7 +248,10 @@ function renderFaculty(faculty) {
           <td>${escapeHtml(member.display_order)}</td>
           <td>${member.is_active ? "Active" : "Inactive"}</td>
           <td>
-            <button class="table-icon-btn danger" data-action="delete-faculty" data-id="${member.id}" type="button" aria-label="Remove faculty member">×</button>
+            <div class="record-actions">
+              <button class="table-btn edit" data-action="edit-faculty" data-id="${member.id}" type="button">Edit</button>
+              <button class="table-icon-btn danger" data-action="delete-faculty" data-id="${member.id}" type="button" aria-label="Remove faculty member">×</button>
+            </div>
           </td>
         </tr>`
     )
@@ -337,6 +344,39 @@ function readImageAsDataUrl(file) {
   });
 }
 
+function resetFacultyForm() {
+  editingFacultyId = null;
+  facultyForm.reset();
+  document.getElementById("facultyExperience").value = "0";
+  document.getElementById("facultyDisplayOrder").value = "100";
+  document.getElementById("facultyStatus").value = "1";
+  facultyFormTitle.textContent = "Add Faculty Member";
+  facultyFormIntro.textContent =
+    "Add a new tutor profile to the public faculty pages. Image upload is optional.";
+  facultyForm.querySelector(".submit-button").textContent = "Add Faculty";
+  cancelFacultyEdit.hidden = true;
+}
+
+function editFaculty(member) {
+  editingFacultyId = Number(member.id);
+  facultyForm.elements.name.value = member.name || "";
+  facultyForm.elements.qualification.value = member.qualification || "";
+  facultyForm.elements.experience_years.value = member.experience_years ?? 0;
+  facultyForm.elements.display_order.value = member.display_order ?? 100;
+  facultyForm.elements.subjects.value = member.subjects || "";
+  facultyForm.elements.city.value = member.city || "";
+  facultyForm.elements.profile_note.value = member.profile_note || "";
+  facultyForm.elements.is_active.value = member.is_active ? "1" : "0";
+  facultyForm.elements.image.value = "";
+  facultyFormTitle.textContent = "Edit Faculty Member";
+  facultyFormIntro.textContent =
+    "Update this tutor profile. Leave the image empty to keep the current image.";
+  facultyForm.querySelector(".submit-button").textContent = "Save Changes";
+  cancelFacultyEdit.hidden = false;
+  setStatus(facultyFormStatus, `Editing ${member.name}.`, "loading");
+  facultyForm.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 function openConfirm({ title, message, onConfirm }) {
   pendingConfirmAction = onConfirm;
   confirmTitle.textContent = title;
@@ -381,6 +421,12 @@ document.addEventListener("click", (event) => {
 
   const id = button.dataset.id;
   const action = button.dataset.action;
+
+  if (action === "edit-faculty") {
+    const member = adminState.faculty.find((item) => String(item.id) === String(id));
+    if (member) editFaculty(member);
+    return;
+  }
 
   if (action === "approve-student") {
     mutateAndRefresh(`/students/${id}/approve`, { method: "POST" }, "Student approved successfully.");
@@ -438,6 +484,11 @@ document.addEventListener("click", (event) => {
   }
 });
 
+cancelFacultyEdit?.addEventListener("click", () => {
+  resetFacultyForm();
+  setStatus(facultyFormStatus, "", "");
+});
+
 confirmYes?.addEventListener("click", () => {
   const action = pendingConfirmAction;
   closeConfirm();
@@ -478,31 +529,34 @@ facultyForm?.addEventListener("submit", async (event) => {
     city: String(formData.get("city") || ""),
     profile_note: String(formData.get("profile_note") || ""),
     display_order: Number(formData.get("display_order") || 100),
+    is_active: Number(formData.get("is_active")) === 1,
     image_data_url: imageDataUrl,
     image_name: imageFile instanceof File ? imageFile.name : "",
   };
 
   submitButton.disabled = true;
-  submitButton.textContent = "Adding Faculty...";
+  submitButton.textContent = editingFacultyId ? "Saving Changes..." : "Adding Faculty...";
   setStatus(facultyFormStatus, "Saving faculty profile...", "loading");
 
   try {
-    const result = await adminFetch("/faculty", {
-      method: "POST",
+    const editId = editingFacultyId;
+    const result = await adminFetch(editId ? `/faculty/${editId}` : "/faculty", {
+      method: editId ? "PUT" : "POST",
       body: JSON.stringify(payload),
     });
-    facultyForm.reset();
-    document.getElementById("facultyExperience").value = "0";
-    document.getElementById("facultyDisplayOrder").value = "100";
-    setStatus(facultyFormStatus, result.message || "Faculty member added successfully.", "success");
-    showToast(result.message || "Faculty member added successfully.", "success");
+    const successMessage =
+      result.message ||
+      (editId ? "Faculty member updated successfully." : "Faculty member added successfully.");
+    resetFacultyForm();
+    setStatus(facultyFormStatus, successMessage, "success");
+    showToast(successMessage, "success");
     await loadDashboardData();
   } catch (error) {
     setStatus(facultyFormStatus, error.message, "error");
     showToast(error.message, "error");
   } finally {
     submitButton.disabled = false;
-    submitButton.textContent = "Add Faculty";
+    submitButton.textContent = editingFacultyId ? "Save Changes" : "Add Faculty";
   }
 });
 

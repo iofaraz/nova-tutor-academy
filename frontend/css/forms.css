@@ -327,6 +327,11 @@ textarea.form-control {
   color: #991b1b;
   border-color: #fecaca;
 }
+.table-btn.edit {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
 .table-icon-btn {
   width: 34px;
   height: 34px;

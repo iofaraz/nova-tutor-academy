@@ -191,8 +191,8 @@
           <section class="tab-panel" id="facultyPanel" role="tabpanel" hidden>
             <div>
               <form class="form-shell" id="facultyForm" style="margin-bottom: 28px;">
-                <h2>Add Faculty Member</h2>
-                <p class="form-intro">
+                <h2 id="facultyFormTitle">Add Faculty Member</h2>
+                <p class="form-intro" id="facultyFormIntro">
                   Add a new tutor profile to the public faculty pages. Image upload is optional.
                 </p>
                 <div class="form-grid">
@@ -229,13 +229,21 @@
                     <label for="facultyImage">Image (optional)</label>
                     <input class="form-control" id="facultyImage" name="image" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
                   </div>
+                  <div class="form-group">
+                    <label for="facultyStatus">Status <span class="required">*</span></label>
+                    <select class="form-control" id="facultyStatus" name="is_active" required>
+                      <option value="1">Active</option>
+                      <option value="0">Inactive</option>
+                    </select>
+                  </div>
                   <div class="form-group full">
                     <label for="facultyProfileNote">Profile Note</label>
                     <textarea class="form-control" id="facultyProfileNote" name="profile_note" maxlength="5000" placeholder="Short note about teaching style, experience, or strengths"></textarea>
                   </div>
                 </div>
-                <div class="form-actions">
+                <div class="form-actions button-row">
                   <button class="btn btn-primary submit-button" type="submit">Add Faculty</button>
+                  <button class="btn btn-secondary" id="cancelFacultyEdit" type="button" hidden>Cancel Edit</button>
                 </div>
                 <div class="form-status" id="facultyFormStatus" role="status" aria-live="polite"></div>
               </form>
