@@ -17,6 +17,7 @@ const loginAttempts = createIpRateLimiter({
 const SESSION_DURATION_MS =
   Number(process.env.ADMIN_SESSION_HOURS || 8) * 60 * 60 * 1000;
 const facultyImageDirectory = path.join(__dirname, "..", "public", "images", "faculty");
+const cvDirectory = path.join(__dirname, "..", "uploads", "cvs");
 
 function clean(value, maxLength) {
   if (value === undefined || value === null) return "";
@@ -183,6 +184,29 @@ async function moveRequestToApproved({
 async function deleteRow(table, id) {
   const [result] = await pool.execute(`DELETE FROM ${table} WHERE id = ?`, [id]);
   return result.affectedRows > 0;
+}
+
+function resolveCvPath(cvPath) {
+  if (!cvPath) return null;
+  const absolutePath = path.resolve(cvDirectory, String(cvPath));
+  const normalizedDirectory = path.resolve(cvDirectory);
+  if (
+    absolutePath !== normalizedDirectory &&
+    !absolutePath.startsWith(normalizedDirectory + path.sep)
+  ) {
+    return null;
+  }
+  return absolutePath;
+}
+
+async function removeCv(cvPath) {
+  const absolutePath = resolveCvPath(cvPath);
+  if (!absolutePath) return;
+  await fs.unlink(absolutePath).catch((error) => {
+    if (error.code !== "ENOENT") {
+      console.warn("Unable to delete tutor CV:", error.message);
+    }
+  });
 }
 
 async function sendApprovalConfirmation({
@@ -452,7 +476,7 @@ router.get("/teachers", requireAdmin, async (req, res, next) => {
   try {
     const teachers = await fetchRows(
       `SELECT id, name, phone, email, city, subjects, experience_years,
-              qualification, availability, submitted_at
+              qualification, availability, cv_original_name, submitted_at
        FROM teacher_applications
        ORDER BY submitted_at DESC, id DESC`
     );
@@ -466,12 +490,61 @@ router.get("/teachers/approved", requireAdmin, async (req, res, next) => {
   try {
     const teachers = await fetchRows(
       `SELECT id, source_request_id, name, phone, email, city, subjects, experience_years,
-              qualification, availability, approved_by, approved_at
+              qualification, availability, cv_original_name, approved_by, approved_at
        FROM teachers
        ORDER BY approved_at DESC, id DESC`
     );
     return res.json({ teachers });
   } catch (error) {
+    return next(error);
+  }
+});
+
+router.get("/teachers/:status/:id/cv", requireAdmin, async (req, res, next) => {
+  const teacherId = Number(req.params.id);
+  const table =
+    req.params.status === "pending"
+      ? "teacher_applications"
+      : req.params.status === "approved"
+        ? "teachers"
+        : null;
+
+  if (!table || !Number.isInteger(teacherId) || teacherId <= 0) {
+    return res.status(400).json({ message: "Invalid CV request." });
+  }
+
+  try {
+    const rows = await fetchRows(
+      `SELECT cv_path, cv_original_name FROM ${table} WHERE id = ? LIMIT 1`,
+      [teacherId]
+    );
+    const cv = rows[0];
+    const absolutePath = resolveCvPath(cv?.cv_path);
+    if (!cv || !absolutePath) {
+      return res.status(404).json({ message: "CV not found." });
+    }
+
+    await fs.access(absolutePath);
+    if (req.query.format === "json") {
+      const extension = path.extname(absolutePath).toLowerCase();
+      const mimeTypes = {
+        ".pdf": "application/pdf",
+        ".doc": "application/msword",
+        ".docx":
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      };
+      const file = await fs.readFile(absolutePath);
+      return res.json({
+        fileName: cv.cv_original_name || path.basename(absolutePath),
+        mimeType: mimeTypes[extension] || "application/octet-stream",
+        data: file.toString("base64"),
+      });
+    }
+    return res.download(absolutePath, cv.cv_original_name || path.basename(absolutePath));
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      return res.status(404).json({ message: "CV file not found." });
+    }
     return next(error);
   }
 });
@@ -498,6 +571,8 @@ router.post("/teachers/:id/approve", requireAdmin, async (req, res, next) => {
         "experience_years",
         "qualification",
         "availability",
+        "cv_path",
+        "cv_original_name",
       ],
       selectColumns: [
         "id AS source_request_id",
@@ -509,6 +584,8 @@ router.post("/teachers/:id/approve", requireAdmin, async (req, res, next) => {
         "experience_years",
         "qualification",
         "availability",
+        "cv_path",
+        "cv_original_name",
       ],
     });
 
@@ -553,10 +630,15 @@ router.post("/teachers/:id/reject", requireAdmin, async (req, res, next) => {
   }
 
   try {
+    const rows = await fetchRows(
+      "SELECT cv_path FROM teacher_applications WHERE id = ? LIMIT 1",
+      [requestId]
+    );
     const deleted = await deleteRow("teacher_applications", requestId);
     if (!deleted) {
       return res.status(404).json({ message: "Teacher application not found." });
     }
+    await removeCv(rows[0]?.cv_path);
     return res.json({ message: "Teacher application rejected and removed." });
   } catch (error) {
     return next(error);
@@ -570,10 +652,15 @@ router.delete("/teachers/approved/:id", requireAdmin, async (req, res, next) => 
   }
 
   try {
+    const rows = await fetchRows(
+      "SELECT cv_path FROM teachers WHERE id = ? LIMIT 1",
+      [teacherId]
+    );
     const deleted = await deleteRow("teachers", teacherId);
     if (!deleted) {
       return res.status(404).json({ message: "Teacher record not found." });
     }
+    await removeCv(rows[0]?.cv_path);
     return res.json({ message: "Teacher record permanently deleted." });
   } catch (error) {
     return next(error);

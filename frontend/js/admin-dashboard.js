@@ -117,6 +117,37 @@ async function adminFetch(path, options = {}) {
   return result;
 }
 
+async function downloadTeacherCv(status, id, originalName) {
+  try {
+    const result = await adminFetch(
+      `/teachers/${status}/${id}/cv?format=json`
+    );
+    if (!result.data) {
+      throw new Error("The CV file is empty or unavailable.");
+    }
+
+    const binary = window.atob(result.data);
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+
+    const blobUrl = URL.createObjectURL(
+      new Blob([bytes], { type: result.mimeType || "application/octet-stream" })
+    );
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = result.fileName || originalName || "tutor-cv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    showToast("CV download started.", "success");
+  } catch (error) {
+    showToast(error.message || "Unable to download the CV.", "error");
+  }
+}
+
 function rowActions(actionButtons) {
   return `<div class="record-actions">${actionButtons}</div>`;
 }
@@ -170,6 +201,11 @@ function renderPendingTeachers(teachers) {
       <td>${escapeHtml(teacher.availability)}</td>
       <td>
         ${rowActions(`
+          ${
+            teacher.cv_original_name
+              ? `<button class="table-btn cv-download" data-action="download-pending-cv" data-id="${teacher.id}" data-file-name="${escapeHtml(teacher.cv_original_name)}" type="button" title="Download ${escapeHtml(teacher.cv_original_name)}"><i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i><span>Download CV</span></button>`
+              : "<span>—</span>"
+          }
           <button class="table-btn approve" data-action="approve-teacher" data-id="${teacher.id}" type="button">Approve</button>
           <button class="table-btn reject" data-action="reject-teacher" data-id="${teacher.id}" type="button">Reject</button>
         `)}
@@ -224,7 +260,14 @@ function renderApprovedTeachers(teachers) {
       <td>${escapeHtml(teacher.qualification)}</td>
       <td>${escapeHtml(teacher.approved_by || "—")}</td>
       <td>
-        <button class="table-icon-btn danger" data-action="delete-approved-teacher" data-id="${teacher.id}" type="button" aria-label="Delete approved teacher">×</button>
+        ${rowActions(`
+          ${
+            teacher.cv_original_name
+              ? `<button class="table-btn cv-download" data-action="download-approved-cv" data-id="${teacher.id}" data-file-name="${escapeHtml(teacher.cv_original_name)}" type="button" title="Download ${escapeHtml(teacher.cv_original_name)}"><i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i><span>Download CV</span></button>`
+              : "<span>—</span>"
+          }
+          <button class="table-icon-btn danger" data-action="delete-approved-teacher" data-id="${teacher.id}" type="button" aria-label="Delete approved teacher">×</button>
+        `)}
       </td>
     </tr>`
     )
@@ -421,6 +464,15 @@ document.addEventListener("click", (event) => {
 
   const id = button.dataset.id;
   const action = button.dataset.action;
+
+  if (action === "download-pending-cv") {
+    downloadTeacherCv("pending", id, button.dataset.fileName);
+    return;
+  }
+  if (action === "download-approved-cv") {
+    downloadTeacherCv("approved", id, button.dataset.fileName);
+    return;
+  }
 
   if (action === "edit-faculty") {
     const member = adminState.faculty.find((item) => String(item.id) === String(id));

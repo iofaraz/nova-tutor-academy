@@ -48,11 +48,21 @@ studentForm?.addEventListener("submit", async (event) => {
     }
 
     studentForm.reset();
+    const successMessage =
+      result.emailStatus === "sent"
+        ? "Your tutor request has been submitted successfully. We sent a confirmation email. Please check your inbox and spam or junk folder. Our team will contact you soon with the next steps."
+        : result.emailStatus === "skipped"
+          ? "Your tutor request has been submitted successfully. Our team will review your requirements and contact you soon with the next steps."
+          : "Your tutor request has been submitted successfully. Our team will contact you soon; however, the confirmation email could not be delivered right now.";
     setFormStatus(
       studentStatus,
-      result.message ||
-        "Your request is sent and a confirmation email has been sent to your inbox.",
+      successMessage,
       "success"
+    );
+    studentStatus.classList.add("submission-confirmation");
+    window.setTimeout(
+      () => studentStatus.classList.remove("submission-confirmation"),
+      12000
     );
   } catch (error) {
     const offlineMessage = isLocalFrontend() && error instanceof TypeError

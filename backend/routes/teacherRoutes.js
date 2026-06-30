@@ -1,3 +1,6 @@
+const crypto = require("crypto");
+const fs = require("fs/promises");
+const path = require("path");
 const express = require("express");
 const { pool } = require("../config/db");
 const { sendSubmissionEmails } = require("../config/mailer");
@@ -12,6 +15,17 @@ const {
 } = require("../utils/validation");
 
 const router = express.Router();
+const cvDirectory = path.join(__dirname, "..", "uploads", "cvs");
+const MAX_CV_SIZE = 3 * 1024 * 1024;
+const cvTypes = {
+  pdf: new Set(["application/pdf", "application/octet-stream", ""]),
+  doc: new Set(["application/msword", "application/octet-stream", ""]),
+  docx: new Set([
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/octet-stream",
+    "",
+  ]),
+};
 const submissionLimiter = createIpRateLimiter({
   windowMs: 15 * 60 * 1000,
   max: 5,
@@ -24,6 +38,56 @@ const allowedCities = new Set([
   "Karachi",
   "Other",
 ]);
+
+function parseCv(cvData, originalName) {
+  if (!cvData || !originalName) {
+    throw new Error("Please upload your CV.");
+  }
+
+  const match = String(cvData).match(
+    /^data:([^;,]*);base64,([A-Za-z0-9+/=]+)$/
+  );
+  const mimeType = match?.[1]?.toLowerCase();
+  const extension = path.extname(String(originalName)).slice(1).toLowerCase();
+
+  if (!match || !cvTypes[extension]?.has(mimeType)) {
+    throw new Error("CV must be a PDF, DOC, or DOCX file.");
+  }
+
+  const buffer = Buffer.from(match[2], "base64");
+  if (!buffer.length || buffer.length > MAX_CV_SIZE) {
+    throw new Error("CV must be 3 MB or smaller.");
+  }
+
+  const hasValidSignature =
+    (extension === "pdf" && buffer.subarray(0, 5).toString() === "%PDF-") ||
+    (extension === "doc" &&
+      buffer.subarray(0, 8).equals(Buffer.from("d0cf11e0a1b11ae1", "hex"))) ||
+    (extension === "docx" && buffer.subarray(0, 2).toString() === "PK");
+
+  if (!hasValidSignature) {
+    throw new Error("The uploaded CV does not appear to be a valid document.");
+  }
+
+  return {
+    buffer,
+    extension,
+    originalName: path.basename(String(originalName)).slice(0, 255),
+  };
+}
+
+async function saveCv(name, cv) {
+  await fs.mkdir(cvDirectory, { recursive: true });
+  const safeName =
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 40) || "tutor";
+  const fileName = `${safeName}-${Date.now()}-${crypto.randomBytes(4).toString("hex")}.${cv.extension}`;
+  await fs.writeFile(path.join(cvDirectory, fileName), cv.buffer, { flag: "wx" });
+  return fileName;
+}
 
 router.post("/apply", submissionLimiter, async (req, res, next) => {
   const experienceValue = parseOptionalInteger(req.body.experience_years);
@@ -40,6 +104,7 @@ router.post("/apply", submissionLimiter, async (req, res, next) => {
   };
 
   const errors = [];
+  let cv;
   if (!application.name) {
     addFieldError(errors, "name", "Name is required.");
   }
@@ -61,6 +126,11 @@ router.post("/apply", submissionLimiter, async (req, res, next) => {
   if (!application.availability) {
     addFieldError(errors, "availability", "Availability is required.");
   }
+  try {
+    cv = parseCv(req.body.cv_data, req.body.cv_name);
+  } catch (error) {
+    addFieldError(errors, "cv", error.message);
+  }
   if (
     application.experience_years !== null &&
     (!Number.isInteger(application.experience_years) ||
@@ -78,11 +148,15 @@ router.post("/apply", submissionLimiter, async (req, res, next) => {
     return res.status(400).json({ message: errors[0].message, errors });
   }
 
+  let savedCvPath;
+  let applicationSaved = false;
   try {
+    savedCvPath = await saveCv(application.name, cv);
     const [result] = await pool.execute(
       `INSERT INTO teacher_applications
-        (name, phone, email, city, subjects, experience_years, qualification, availability)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        (name, phone, email, city, subjects, experience_years, qualification, availability,
+         cv_path, cv_original_name)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         application.name,
         application.phone,
@@ -92,8 +166,11 @@ router.post("/apply", submissionLimiter, async (req, res, next) => {
         application.experience_years,
         application.qualification,
         application.availability,
+        savedCvPath,
+        cv.originalName,
       ]
     );
+    applicationSaved = true;
 
     const adminEmail = process.env.MAIL_USER;
     const emailResult = await sendSubmissionEmails(
@@ -118,6 +195,7 @@ router.post("/apply", submissionLimiter, async (req, res, next) => {
                 : application.experience_years,
             Qualification: application.qualification,
             Availability: application.availability,
+            CV: `${cv.originalName} (available in the admin dashboard)`,
           },
           footer:
             "Review this application and reach out to the candidate if the profile matches current teaching needs.",
@@ -150,6 +228,9 @@ router.post("/apply", submissionLimiter, async (req, res, next) => {
       emailStatus: emailResult?.skipped ? "skipped" : emailResult?.sent ? "sent" : "partial",
     });
   } catch (error) {
+    if (savedCvPath && !applicationSaved) {
+      await fs.unlink(path.join(cvDirectory, savedCvPath)).catch(() => {});
+    }
     return next(error);
   }
 });

@@ -55,7 +55,7 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-app.use(express.json({ limit: "4mb" }));
+app.use(express.json({ limit: "6mb" }));
 app.use(express.urlencoded({ extended: false, limit: "100kb" }));
 app.use(
   "/images",

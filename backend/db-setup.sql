@@ -52,6 +52,8 @@ CREATE TABLE IF NOT EXISTS teacher_applications (
   experience_years  INT UNSIGNED,
   qualification     VARCHAR(200) NOT NULL,
   availability      VARCHAR(100) NOT NULL,
+  cv_path           VARCHAR(255),
+  cv_original_name  VARCHAR(255),
   submitted_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_teacher_submitted_at (submitted_at),
   INDEX idx_teacher_city (city)
@@ -68,6 +70,8 @@ CREATE TABLE IF NOT EXISTS teachers (
   experience_years    INT UNSIGNED,
   qualification       VARCHAR(200) NOT NULL,
   availability        VARCHAR(100) NOT NULL,
+  cv_path             VARCHAR(255),
+  cv_original_name    VARCHAR(255),
   approved_by         VARCHAR(50),
   approved_at         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uq_teachers_source_request (source_request_id),

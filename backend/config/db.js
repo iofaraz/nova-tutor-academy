@@ -36,6 +36,26 @@ async function syncSchema() {
   for (const statement of statements) {
     await pool.execute(statement);
   }
+
+  const cvColumns = [
+    ["teacher_applications", "cv_path", "VARCHAR(255) NULL AFTER availability"],
+    ["teacher_applications", "cv_original_name", "VARCHAR(255) NULL AFTER cv_path"],
+    ["teachers", "cv_path", "VARCHAR(255) NULL AFTER availability"],
+    ["teachers", "cv_original_name", "VARCHAR(255) NULL AFTER cv_path"],
+  ];
+
+  for (const [table, column, definition] of cvColumns) {
+    const [rows] = await pool.execute(
+      `SELECT 1
+       FROM information_schema.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?
+       LIMIT 1`,
+      [table, column]
+    );
+    if (!rows.length) {
+      await pool.execute(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+    }
+  }
 }
 
 async function testConnection() {
