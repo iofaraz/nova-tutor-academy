@@ -7,7 +7,7 @@ const isLocalFrontend =
   window.location.protocol === "file:" ||
   ["localhost", "127.0.0.1"].includes(window.location.hostname);
 const API_ORIGIN = isLocalFrontend ? "http://localhost:5000" : window.location.origin;
-isPagesSection = window.location.pathname.includes("/pages/");
+const isPagesSection = window.location.pathname.includes("/pages/");
 const SITE_LOGO_URL = `${isPagesSection ? "../" : "./"}assets/logo.png`;
 const LOCAL_API_BASE_FALLBACKS = isLocalFrontend
   ? ["http://localhost:5000/api", "http://127.0.0.1:5000/api"]
@@ -77,13 +77,13 @@ function facultySubjectTags(subjects) {
 
   return `
     ${visibleTags}
-    <details class="faculty-subjects-more">
-      <summary aria-label="Toggle ${hiddenValues.length} additional subjects">
+    <div class="faculty-subjects-more">
+      <div class="faculty-subjects-extra" hidden>${hiddenTags}</div>
+      <button class="faculty-subjects-toggle" type="button" aria-expanded="false">
         <span class="subjects-more-label">+${hiddenValues.length} more</span>
         <span class="subjects-less-label">Show less</span>
-      </summary>
-      <div class="faculty-subjects-extra">${hiddenTags}</div>
-    </details>
+      </button>
+    </div>
   `;
 }
 
@@ -205,6 +205,20 @@ function renderHomeFaculty(faculty) {
     .join("");
 }
 
+function toggleFacultySubjects(event) {
+  const button = event.target.closest(".faculty-subjects-toggle");
+  if (!button) return;
+
+  const wrapper = button.closest(".faculty-subjects-more");
+  const extra = wrapper?.querySelector(".faculty-subjects-extra");
+  if (!wrapper || !extra) return;
+
+  const isExpanded = !extra.hidden;
+  extra.hidden = isExpanded;
+  wrapper.classList.toggle("is-expanded", !isExpanded);
+  button.setAttribute("aria-expanded", String(!isExpanded));
+}
+
 function filterFaculty() {
   const query = facultySearch?.value.trim().toLowerCase() || "";
   if (!query) {
@@ -254,4 +268,6 @@ async function loadFaculty() {
 }
 
 facultySearch?.addEventListener("input", filterFaculty);
+facultyGrid?.addEventListener("click", toggleFacultySubjects);
+homeFacultyGrid?.addEventListener("click", toggleFacultySubjects);
 loadFaculty();

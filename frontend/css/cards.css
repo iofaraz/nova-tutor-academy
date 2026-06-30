@@ -377,9 +377,14 @@
   font-weight: 700;
 }
 .faculty-subjects-more {
-  position: relative;
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 2px;
 }
-.faculty-subjects-more summary {
+.faculty-subjects-toggle {
   display: inline-flex;
   align-items: center;
   min-height: 28px;
@@ -392,33 +397,26 @@
   line-height: 1.25;
   font-weight: 800;
   cursor: pointer;
-  list-style: none;
+  appearance: none;
 }
-.faculty-subjects-more summary::-webkit-details-marker {
-  display: none;
+.faculty-subjects-toggle:hover,
+.faculty-subjects-toggle:focus-visible {
+  border-color: var(--gold);
+  background: rgba(245, 166, 35, 0.08);
 }
 .subjects-less-label {
   display: none;
 }
-.faculty-subjects-more[open] .subjects-more-label {
+.faculty-subjects-more.is-expanded .subjects-more-label {
   display: none;
 }
-.faculty-subjects-more[open] .subjects-less-label {
+.faculty-subjects-more.is-expanded .subjects-less-label {
   display: inline;
-}
-.faculty-subjects-more summary:hover,
-.faculty-subjects-more summary:focus-visible {
-  border-color: var(--gold);
-  background: rgba(245, 166, 35, 0.08);
-}
-.faculty-subjects-more[open] {
-  flex-basis: 100%;
 }
 .faculty-subjects-extra {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
-  padding-top: 9px;
 }
 .faculty-divider {
   display: flex;

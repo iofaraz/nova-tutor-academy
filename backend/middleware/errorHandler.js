@@ -1,5 +1,5 @@
 function errorHandler(error, req, res, next) {
-  console.error(error);
+  console.error("Unhandled server error:", error);
 
   if (res.headersSent) return next(error);
   if (error.type === "entity.too.large") {
@@ -12,11 +12,22 @@ function errorHandler(error, req, res, next) {
     return res.status(403).json({ message: error.message });
   }
 
+  const mysqlErrorCodes = new Set([
+    "ER_DUP_ENTRY",
+    "ER_DATA_TOO_LONG",
+    "WARN_DATA_TRUNCATED",
+    "ER_TRUNCATED_WRONG_VALUE",
+    "ER_BAD_NULL_ERROR",
+    "ER_WARN_DATA_OUT_OF_RANGE",
+  ]);
+  if (mysqlErrorCodes.has(error.code)) {
+    return res.status(400).json({
+      message: "The submitted data could not be saved. Please review the form and try again.",
+    });
+  }
+
   return res.status(500).json({
-    message:
-      process.env.NODE_ENV === "development"
-        ? error.message
-        : "Something went wrong on the server.",
+    message: "Something went wrong on the server.",
   });
 }
 
