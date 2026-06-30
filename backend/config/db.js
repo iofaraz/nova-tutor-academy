@@ -22,6 +22,22 @@ const pool = mysql.createPool({
   timezone: "Z",
 });
 
+const cityEnumDefinition =
+  "ENUM('Islamabad/Rawalpindi', 'Lahore', 'Karachi', 'Other') NOT NULL";
+
+async function syncSchema() {
+  const statements = [
+    `ALTER TABLE student_requests MODIFY COLUMN city ${cityEnumDefinition}`,
+    `ALTER TABLE students MODIFY COLUMN city ${cityEnumDefinition}`,
+    `ALTER TABLE teacher_applications MODIFY COLUMN city ${cityEnumDefinition}`,
+    `ALTER TABLE teachers MODIFY COLUMN city ${cityEnumDefinition}`,
+  ];
+
+  for (const statement of statements) {
+    await pool.execute(statement);
+  }
+}
+
 async function testConnection() {
   const connection = await pool.getConnection();
   try {
@@ -31,4 +47,4 @@ async function testConnection() {
   }
 }
 
-module.exports = { pool, testConnection };
+module.exports = { pool, syncSchema, testConnection };

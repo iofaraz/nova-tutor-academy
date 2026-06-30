@@ -82,9 +82,20 @@ const FOOTER_HTML = `
           <li><a href="${basePath}about.html">About Us</a></li>
           <li><a href="${basePath}teach-with-us.html">Register as Tutor</a></li>
           <li><a href="${basePath}contact.html">Contact Us</a></li>
-          <li><a href="tel:+923001234567">+92 300 1234567</a></li>
+          <li><a href="tel:+923001234567">+92 334 0067834</a></li>
         </ul>
+        <div class="social-links">
+              <a class="social-link instagram" href="https://www.instagram.com" target="_blank"
+                ><i class="fa-brands fa-instagram"></i
+              ></a>
+              <a class="social-link whatsapp" href="https://wa.me/923165728575" target="_blank"
+                ><i class="fa-brands fa-whatsapp"></i
+              ></a>
+              <a class="social-link facebook" href="https://www.facebook.com" target="_blank"
+                ><i class="fa-brands fa-facebook-f"></i></a>
+        </div>
       </div>
+      
     </div>
     <div class="footer-bottom">
       <span>&copy; ${new Date().getFullYear()} Nova Tutor Academy. All rights reserved.</span>
@@ -104,7 +115,7 @@ document.querySelectorAll("[data-site-footer]").forEach((element) => {
 document.addEventListener("DOMContentLoaded", () => {
   const whatsappLink = document.createElement("a");
   whatsappLink.className = "whatsapp-float";
-  whatsappLink.href = "https://wa.me/923001234567";
+  whatsappLink.href = "https://wa.me/923165728575";
   whatsappLink.target = "_blank";
   whatsappLink.rel = "noopener noreferrer";
   whatsappLink.setAttribute("aria-label", "Chat with Nova Tutor Academy on WhatsApp");

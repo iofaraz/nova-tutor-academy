@@ -6,7 +6,7 @@ require("dotenv").config({
 
 const express = require("express");
 const cors = require("cors");
-const { testConnection } = require("./config/db");
+const { syncSchema, testConnection } = require("./config/db");
 const { verifyMailer, mailEnabled } = require("./config/mailer");
 const studentRoutes = require("./routes/studentRoutes");
 const teacherRoutes = require("./routes/teacherRoutes");
@@ -87,6 +87,7 @@ app.use(errorHandler);
 async function startServer() {
   try {
     await testConnection();
+    await syncSchema();
     console.log("MySQL connection established.");
 
     if (mailEnabled) {

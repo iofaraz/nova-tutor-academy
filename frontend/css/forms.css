@@ -127,7 +127,7 @@ textarea.form-control {
 }
 .contact-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 16px;
   padding: 16px 20px;
   background: var(--white);

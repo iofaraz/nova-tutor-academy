@@ -22,6 +22,7 @@ const allowedCities = new Set([
   "Islamabad/Rawalpindi",
   "Lahore",
   "Karachi",
+  "Other",
 ]);
 const allowedTutorTypes = new Set(["Home", "Online", "International"]);
 
