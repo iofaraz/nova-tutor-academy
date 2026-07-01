@@ -9,7 +9,7 @@
   }
 
   function getApiBase(path = "/api") {
-    // Local file opens use localhost:5000; production uses same-origin /api.
+    //! Production note: keep frontend and backend on the same origin in production, or replace this fallback with your real API base URL. 
     return isLocalFrontend() ? `http://localhost:5000${path}` : path;
   }
 

@@ -69,6 +69,7 @@ router.post("/", submissionLimiter, async (req, res, next) => {
       ]
     );
 
+    /*! Production note: MAIL_USER is used as the admin email recipient. Set MAIL_USER env variable to your admin's email address for production. */
     const adminEmail = process.env.MAIL_USER;
     const emailResult = await sendSubmissionEmails(
       [

@@ -82,16 +82,18 @@ const FOOTER_HTML = `
           <li><a href="${basePath}about.html">About Us</a></li>
           <li><a href="${basePath}teach-with-us.html">Register as Tutor</a></li>
           <li><a href="${basePath}contact.html">Contact Us</a></li>
+          //! Production note: Update this phone number to your actual business phone number
           <li><a href="tel:+923001234567">+92 334 0067834</a></li>
         </ul>
         <div class="social-links">
-              <a class="social-link instagram" href="https://www.instagram.com" target="_blank"
+              //! Production note: Update all social media links to your actual business accounts. 
+              <a class="social-link instagram" href="https://www.instagram.com" target="_blank" rel="noopener noreferrer"
                 ><i class="fa-brands fa-instagram"></i
               ></a>
-              <a class="social-link whatsapp" href="https://wa.me/923165728575" target="_blank"
+              <a class="social-link whatsapp" href="https://wa.me/923165728575" target="_blank" rel="noopener noreferrer"
                 ><i class="fa-brands fa-whatsapp"></i
               ></a>
-              <a class="social-link facebook" href="https://www.facebook.com" target="_blank"
+              <a class="social-link facebook" href="https://www.facebook.com" target="_blank" rel="noopener noreferrer"
                 ><i class="fa-brands fa-facebook-f"></i></a>
         </div>
       </div>
@@ -115,6 +117,7 @@ document.querySelectorAll("[data-site-footer]").forEach((element) => {
 document.addEventListener("DOMContentLoaded", () => {
   const whatsappLink = document.createElement("a");
   whatsappLink.className = "whatsapp-float";
+  //! Production note: Update this WhatsApp number to your actual business WhatsApp number.
   whatsappLink.href = "https://wa.me/923165728575";
   whatsappLink.target = "_blank";
   whatsappLink.rel = "noopener noreferrer";

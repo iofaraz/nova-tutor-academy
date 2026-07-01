@@ -1,6 +1,9 @@
 -- Run this file once to set up the database:
 -- mysql -u root -p < db-setup.sql
 
+-- /*!  Production note: For production deployment, use a managed database service (AWS RDS, Google Cloud SQL, etc.)
+--     with automated backups, security groups, and proper access controls. */
+
 CREATE DATABASE IF NOT EXISTS nova_tutor_db
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;

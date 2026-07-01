@@ -1,8 +1,9 @@
 const { getApiBase, isLocalFrontend, setFormStatus } = window.NovaFormUtils;
 
 const ADMIN_API_BASE_URL = getApiBase("/api/admin");
-const TOKEN_KEY = "novaAdminToken";
 const SIGN_IN_PAGE = "./admin-signin.html";
+const ADMIN_CSRF_COOKIE = "nova_admin_csrf";
+/*! Production note: admin write requests rely on the CSRF cookie, so keep the dashboard and API on the same origin in production. */
 
 const dashboard = document.getElementById("adminDashboard");
 const adminStatus = document.getElementById("adminStatus");
@@ -96,20 +97,37 @@ function redirectToSignIn(message) {
   window.location.replace(SIGN_IN_PAGE);
 }
 
+function getCookie(name) {
+  const match = document.cookie.match(
+    new RegExp(`(?:^|; )${name.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&")}=([^;]*)`)
+  );
+  return match ? decodeURIComponent(match[1]) : "";
+}
+
 async function adminFetch(path, options = {}) {
-  const token = sessionStorage.getItem(TOKEN_KEY);
+  const method = String(options.method || "GET").toUpperCase();
+  const headers = {
+    ...(options.headers || {}),
+  };
+
+  if (method !== "GET" && method !== "HEAD" && method !== "OPTIONS") {
+    const csrfToken = getCookie(ADMIN_CSRF_COOKIE);
+    if (csrfToken) {
+      headers["X-CSRF-Token"] = csrfToken;
+    }
+  }
+
   const response = await fetch(`${ADMIN_API_BASE_URL}${path}`, {
     ...options,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
+      ...headers,
     },
   });
 
   const result = await response.json().catch(() => ({}));
   if (response.status === 401 || response.status === 403) {
-    sessionStorage.removeItem(TOKEN_KEY);
     redirectToSignIn("Your session has expired. Please sign in again.");
     throw new Error("Your session has expired. Please sign in again.");
   }
@@ -452,7 +470,6 @@ document.getElementById("logoutButton")?.addEventListener("click", async () => {
   } catch (error) {
     // Clear local state even if the backend session already expired.
   } finally {
-    sessionStorage.removeItem(TOKEN_KEY);
     showToast("Signed out successfully.", "success");
     redirectToSignIn();
   }
@@ -612,9 +629,5 @@ facultyForm?.addEventListener("submit", async (event) => {
   }
 });
 
-if (sessionStorage.getItem(TOKEN_KEY)) {
-  showDashboard();
-  loadDashboardData();
-} else {
-  redirectToSignIn();
-}
+showDashboard();
+loadDashboardData();

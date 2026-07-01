@@ -1,5 +1,13 @@
 function errorHandler(error, req, res, next) {
-  console.error("Unhandled server error:", error);
+  const isDevelopment = process.env.NODE_ENV === "development";
+  const logPayload = isDevelopment
+    ? error
+    : {
+        message: error?.message,
+        code: error?.code,
+      };
+  /*! Production note: integrate with a logging service (Winston, Sentry, DataDog, etc.) to track errors in production. */
+  console.error("Unhandled server error:", logPayload);
 
   if (res.headersSent) return next(error);
   if (error.type === "entity.too.large") {
@@ -23,6 +31,12 @@ function errorHandler(error, req, res, next) {
   if (mysqlErrorCodes.has(error.code)) {
     return res.status(400).json({
       message: "The submitted data could not be saved. Please review the form and try again.",
+    });
+  }
+
+  if (error.code === "ECONNREFUSED") {
+    return res.status(503).json({
+      message: "A required service is temporarily unavailable.",
     });
   }
 

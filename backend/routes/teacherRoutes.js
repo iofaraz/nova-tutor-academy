@@ -15,6 +15,7 @@ const {
 } = require("../utils/validation");
 
 const router = express.Router();
+/*! Production note: ensure the /uploads/cvs directory is created and writable. For cloud deployments, consider using cloud storage (S3, GCS) instead of local filesystem. */
 const cvDirectory = path.join(__dirname, "..", "uploads", "cvs");
 const MAX_CV_SIZE = 3 * 1024 * 1024;
 const cvTypes = {

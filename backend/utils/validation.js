@@ -28,6 +28,32 @@ function parseOptionalInteger(value) {
   return parsed;
 }
 
+function isPlainObject(value) {
+  if (value === null || typeof value !== "object") return false;
+  return Object.getPrototypeOf(value) === Object.prototype;
+}
+
+function hasDangerousKeys(value, seen = new Set()) {
+  if (!value || typeof value !== "object" || seen.has(value)) return false;
+
+  seen.add(value);
+  if (Array.isArray(value)) {
+    return value.some((item) => hasDangerousKeys(item, seen));
+  }
+
+  for (const key of Object.keys(value)) {
+    if (key === "__proto__" || key === "prototype" || key === "constructor") {
+      return true;
+    }
+
+    if (hasDangerousKeys(value[key], seen)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function addFieldError(errors, field, message) {
   errors.push({ field, message });
 }
@@ -37,6 +63,8 @@ module.exports = {
   cleanText,
   isValidEmail,
   isValidPhone,
+  hasDangerousKeys,
+  isPlainObject,
   normalizeEmail,
   parseOptionalInteger,
 };

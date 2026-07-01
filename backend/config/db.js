@@ -22,10 +22,37 @@ const pool = mysql.createPool({
   timezone: "Z",
 });
 
+async function tableExists(tableName) {
+  const [rows] = await pool.execute(
+    `SELECT 1
+     FROM information_schema.TABLES
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?
+     LIMIT 1`,
+    [tableName]
+  );
+  return rows.length > 0;
+}
+
+async function columnExists(tableName, columnName) {
+  const [rows] = await pool.execute(
+    `SELECT 1
+     FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?
+     LIMIT 1`,
+    [tableName, columnName]
+  );
+  return rows.length > 0;
+}
+
 const cityEnumDefinition =
   "ENUM('Islamabad/Rawalpindi', 'Lahore', 'Karachi', 'Other') NOT NULL";
 
 async function syncSchema() {
+  /* Production note: run the SQL migration manually in production; this helper is for controlled local setup only. */
+  if (process.env.NODE_ENV === "production" && process.env.SYNC_SCHEMA_ON_START !== "true") {
+    return { skipped: true };
+  }
+
   const statements = [
     `ALTER TABLE student_requests MODIFY COLUMN city ${cityEnumDefinition}`,
     `ALTER TABLE students MODIFY COLUMN city ${cityEnumDefinition}`,
@@ -34,7 +61,10 @@ async function syncSchema() {
   ];
 
   for (const statement of statements) {
-    await pool.execute(statement);
+    const tableName = statement.match(/ALTER TABLE (\w+)/)?.[1];
+    if (tableName && (await tableExists(tableName))) {
+      await pool.execute(statement);
+    }
   }
 
   const cvColumns = [
@@ -45,17 +75,12 @@ async function syncSchema() {
   ];
 
   for (const [table, column, definition] of cvColumns) {
-    const [rows] = await pool.execute(
-      `SELECT 1
-       FROM information_schema.COLUMNS
-       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?
-       LIMIT 1`,
-      [table, column]
-    );
-    if (!rows.length) {
+    if ((await tableExists(table)) && !(await columnExists(table, column))) {
       await pool.execute(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
     }
   }
+
+  return { skipped: false };
 }
 
 async function testConnection() {

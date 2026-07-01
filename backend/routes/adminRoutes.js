@@ -8,7 +8,12 @@ const { sendNotification } = require("../config/mailer");
 const { createIpRateLimiter } = require("../middleware/rateLimit");
 
 const router = express.Router();
+/*! Production note: replace this in-memory session map with Redis or another shared store when you deploy more than one app instance. */
 const sessions = new Map();
+router.use((req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
 const loginAttempts = createIpRateLimiter({
   windowMs: 15 * 60 * 1000,
   max: 8,
@@ -16,7 +21,15 @@ const loginAttempts = createIpRateLimiter({
 });
 const SESSION_DURATION_MS =
   Number(process.env.ADMIN_SESSION_HOURS || 8) * 60 * 60 * 1000;
+const SESSION_COOKIE_NAME = "nova_admin_session";
+const CSRF_COOKIE_NAME = "nova_admin_csrf";
+const isProduction = process.env.NODE_ENV === "production";
+/*! Production note: set ADMIN_COOKIE_SECURE=true whenever the app is served over HTTPS behind a proxy or load balancer. */
+const cookieSecure = process.env.ADMIN_COOKIE_SECURE
+  ? process.env.ADMIN_COOKIE_SECURE === "true"
+  : isProduction;
 const facultyImageDirectory = path.join(__dirname, "..", "public", "images", "faculty");
+/*! Production note: ensure /uploads/cvs directory exists and is writable. For cloud deployments, migrate to cloud storage (S3, GCS, etc.). */
 const cvDirectory = path.join(__dirname, "..", "uploads", "cvs");
 
 function clean(value, maxLength) {
@@ -65,12 +78,14 @@ function fileExtensionForMime(mimeType) {
 
 function issueSession(admin) {
   const token = crypto.randomBytes(48).toString("hex");
+  const csrfToken = crypto.randomBytes(32).toString("hex");
   sessions.set(token, {
     adminId: admin.id || null,
     username: admin.username,
     expiresAt: Date.now() + SESSION_DURATION_MS,
+    csrfToken,
   });
-  return token;
+  return { token, csrfToken };
 }
 
 function removeExpiredSessions() {
@@ -80,12 +95,81 @@ function removeExpiredSessions() {
   }
 }
 
-function requireAdmin(req, res, next) {
-  removeExpiredSessions();
+function parseCookies(header = "") {
+  return header.split(";").reduce((cookies, pair) => {
+    const index = pair.indexOf("=");
+    if (index === -1) return cookies;
+    const name = pair.slice(0, index).trim();
+    const value = pair.slice(index + 1).trim();
+    if (!name) return cookies;
+    cookies[name] = decodeURIComponent(value);
+    return cookies;
+  }, {});
+}
+
+function readSessionToken(req) {
+  const cookies = parseCookies(req.headers.cookie || "");
+  if (cookies[SESSION_COOKIE_NAME]) {
+    return { token: cookies[SESSION_COOKIE_NAME], source: "cookie" };
+  }
+
   const authorization = req.get("authorization") || "";
   const [scheme, token] = authorization.split(" ");
+  if (scheme === "Bearer" && token) {
+    return { token, source: "bearer" };
+  }
 
-  if (scheme !== "Bearer" || !token) {
+  return { token: null, source: null };
+}
+
+function clearAdminCookies(res) {
+  const expiredDate = new Date(0);
+  res.append("Set-Cookie", [
+    `${SESSION_COOKIE_NAME}=; Path=/api/admin; HttpOnly; SameSite=Strict; Expires=${expiredDate.toUTCString()}; Max-Age=0${cookieSecure ? "; Secure" : ""}`,
+    `${CSRF_COOKIE_NAME}=; Path=/; SameSite=Strict; Expires=${expiredDate.toUTCString()}; Max-Age=0${cookieSecure ? "; Secure" : ""}`,
+  ]);
+}
+
+function setAdminCookies(res, session) {
+  const sessionExpires = new Date(Date.now() + SESSION_DURATION_MS).toUTCString();
+  const sessionCookie = [
+    `${SESSION_COOKIE_NAME}=${encodeURIComponent(session.token)}`,
+    "Path=/api/admin",
+    "HttpOnly",
+    "SameSite=Strict",
+    `Expires=${sessionExpires}`,
+    `Max-Age=${Math.max(Math.floor(SESSION_DURATION_MS / 1000), 1)}`,
+  ];
+  const csrfCookie = [
+    `${CSRF_COOKIE_NAME}=${encodeURIComponent(session.csrfToken)}`,
+    "Path=/",
+    "SameSite=Strict",
+    `Expires=${sessionExpires}`,
+    `Max-Age=${Math.max(Math.floor(SESSION_DURATION_MS / 1000), 1)}`,
+  ];
+
+  if (cookieSecure) {
+    sessionCookie.push("Secure");
+    csrfCookie.push("Secure");
+  }
+
+  res.append("Set-Cookie", [sessionCookie.join("; "), csrfCookie.join("; ")]);
+}
+
+function readCsrfToken(req) {
+  return (
+    req.get("x-csrf-token") ||
+    req.get("x-xsrf-token") ||
+    req.body?._csrf ||
+    ""
+  );
+}
+
+function requireAdmin(req, res, next) {
+  removeExpiredSessions();
+  const { token, source } = readSessionToken(req);
+
+  if (!token) {
     return res.status(401).json({ message: "Administrator sign-in is required." });
   }
 
@@ -97,6 +181,32 @@ function requireAdmin(req, res, next) {
 
   req.admin = session;
   req.adminToken = token;
+  req.adminAuthSource = source;
+  return next();
+}
+
+function requireAdminCsrf(req, res, next) {
+  if (req.adminAuthSource !== "cookie") {
+    return next();
+  }
+
+  const cookies = parseCookies(req.headers.cookie || "");
+  const csrfCookie = cookies[CSRF_COOKIE_NAME];
+  const csrfHeader = readCsrfToken(req);
+
+  if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
+    return res.status(403).json({
+      message: "Your admin session could not be verified. Please sign in again.",
+    });
+  }
+
+  const session = sessions.get(req.adminToken);
+  if (!session || session.csrfToken !== csrfCookie) {
+    return res.status(403).json({
+      message: "Your admin session could not be verified. Please sign in again.",
+    });
+  }
+
   return next();
 }
 
@@ -111,6 +221,7 @@ async function verifyAdminCredentials(username, password) {
   const environmentUsername = clean(process.env.ADMIN_USERNAME, 50);
   const environmentPassword = String(process.env.ADMIN_PASSWORD || "");
 
+  /*! Production note: use a hashed admin_users table for long-term production admin accounts; the env fallback is for quick bootstrap only. */
   if (environmentUsername && environmentPassword) {
     if (
       safeStringMatch(username, environmentUsername) &&
@@ -324,10 +435,11 @@ router.post("/login", loginAttempts, async (req, res, next) => {
       return res.status(401).json({ message: "Invalid username or password." });
     }
 
-    const token = issueSession(admin);
+    const session = issueSession(admin);
+    setAdminCookies(res, session);
     return res.json({
       message: "Signed in successfully.",
-      token,
+      csrfToken: session.csrfToken,
       expiresIn: SESSION_DURATION_MS,
       admin: { username: admin.username },
     });
@@ -336,8 +448,18 @@ router.post("/login", loginAttempts, async (req, res, next) => {
   }
 });
 
-router.post("/logout", requireAdmin, (req, res) => {
+router.get("/session", requireAdmin, (req, res) => {
+  return res.json({
+    admin: {
+      username: req.admin.username,
+      expiresIn: Math.max(req.admin.expiresAt - Date.now(), 0),
+    },
+  });
+});
+
+router.post("/logout", requireAdmin, requireAdminCsrf, (req, res) => {
   sessions.delete(req.adminToken);
+  clearAdminCookies(res);
   return res.json({ message: "Signed out successfully." });
 });
 
@@ -369,7 +491,7 @@ router.get("/students/approved", requireAdmin, async (req, res, next) => {
   }
 });
 
-router.post("/students/:id/approve", requireAdmin, async (req, res, next) => {
+router.post("/students/:id/approve", requireAdmin, requireAdminCsrf, async (req, res, next) => {
   const requestId = Number(req.params.id);
   if (!Number.isInteger(requestId) || requestId <= 0) {
     return res.status(400).json({ message: "Invalid student request id." });
@@ -438,7 +560,7 @@ router.post("/students/:id/approve", requireAdmin, async (req, res, next) => {
   }
 });
 
-router.post("/students/:id/reject", requireAdmin, async (req, res, next) => {
+router.post("/students/:id/reject", requireAdmin, requireAdminCsrf, async (req, res, next) => {
   const requestId = Number(req.params.id);
   if (!Number.isInteger(requestId) || requestId <= 0) {
     return res.status(400).json({ message: "Invalid student request id." });
@@ -455,7 +577,7 @@ router.post("/students/:id/reject", requireAdmin, async (req, res, next) => {
   }
 });
 
-router.delete("/students/approved/:id", requireAdmin, async (req, res, next) => {
+router.delete("/students/approved/:id", requireAdmin, requireAdminCsrf, async (req, res, next) => {
   const studentId = Number(req.params.id);
   if (!Number.isInteger(studentId) || studentId <= 0) {
     return res.status(400).json({ message: "Invalid student record id." });
@@ -549,7 +671,7 @@ router.get("/teachers/:status/:id/cv", requireAdmin, async (req, res, next) => {
   }
 });
 
-router.post("/teachers/:id/approve", requireAdmin, async (req, res, next) => {
+router.post("/teachers/:id/approve", requireAdmin, requireAdminCsrf, async (req, res, next) => {
   const requestId = Number(req.params.id);
   if (!Number.isInteger(requestId) || requestId <= 0) {
     return res.status(400).json({ message: "Invalid teacher application id." });
@@ -623,7 +745,7 @@ router.post("/teachers/:id/approve", requireAdmin, async (req, res, next) => {
   }
 });
 
-router.post("/teachers/:id/reject", requireAdmin, async (req, res, next) => {
+router.post("/teachers/:id/reject", requireAdmin, requireAdminCsrf, async (req, res, next) => {
   const requestId = Number(req.params.id);
   if (!Number.isInteger(requestId) || requestId <= 0) {
     return res.status(400).json({ message: "Invalid teacher application id." });
@@ -645,7 +767,7 @@ router.post("/teachers/:id/reject", requireAdmin, async (req, res, next) => {
   }
 });
 
-router.delete("/teachers/approved/:id", requireAdmin, async (req, res, next) => {
+router.delete("/teachers/approved/:id", requireAdmin, requireAdminCsrf, async (req, res, next) => {
   const teacherId = Number(req.params.id);
   if (!Number.isInteger(teacherId) || teacherId <= 0) {
     return res.status(400).json({ message: "Invalid teacher record id." });
@@ -667,7 +789,7 @@ router.delete("/teachers/approved/:id", requireAdmin, async (req, res, next) => 
   }
 });
 
-router.delete("/faculty/:id", requireAdmin, async (req, res, next) => {
+router.delete("/faculty/:id", requireAdmin, requireAdminCsrf, async (req, res, next) => {
   const facultyId = Number(req.params.id);
   if (!Number.isInteger(facultyId) || facultyId <= 0) {
     return res.status(400).json({ message: "Invalid faculty id." });
@@ -696,7 +818,7 @@ router.delete("/faculty/:id", requireAdmin, async (req, res, next) => {
   }
 });
 
-router.put("/faculty/:id", requireAdmin, async (req, res, next) => {
+router.put("/faculty/:id", requireAdmin, requireAdminCsrf, async (req, res, next) => {
   const facultyId = Number(req.params.id);
   if (!Number.isInteger(facultyId) || facultyId <= 0) {
     return res.status(400).json({ message: "Invalid faculty id." });
@@ -782,7 +904,7 @@ router.put("/faculty/:id", requireAdmin, async (req, res, next) => {
   }
 });
 
-router.post("/faculty", requireAdmin, async (req, res, next) => {
+router.post("/faculty", requireAdmin, requireAdminCsrf, async (req, res, next) => {
   const name = clean(req.body.name, 100);
   const qualification = clean(req.body.qualification, 200);
   const subjects = clean(req.body.subjects, 255);

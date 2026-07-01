@@ -1,8 +1,9 @@
 const { getApiBase, isLocalFrontend, setFormStatus } = window.NovaFormUtils;
 
 const ADMIN_API_BASE_URL = getApiBase("/api/admin");
-const TOKEN_KEY = "novaAdminToken";
 const DASHBOARD_PAGE = "./admin.html";
+const SESSION_CHECK_URL = `${ADMIN_API_BASE_URL}/session`;
+/*! Production note: this sign-in page expects a cookie-based session from the same origin as the API. */
 
 const loginForm = document.getElementById("adminLoginForm");
 const loginStatus = document.getElementById("loginStatus");
@@ -44,15 +45,26 @@ function redirectToDashboard() {
   window.location.replace(DASHBOARD_PAGE);
 }
 
+async function hasActiveSession() {
+  try {
+    const response = await fetch(SESSION_CHECK_URL, {
+      credentials: "include",
+    });
+    return response.ok;
+  } catch (error) {
+    return false;
+  }
+}
+
 const flashMessage = sessionStorage.getItem("novaAdminFlash");
 if (flashMessage) {
   showToast(flashMessage, "error");
   sessionStorage.removeItem("novaAdminFlash");
 }
 
-if (sessionStorage.getItem(TOKEN_KEY)) {
-  redirectToDashboard();
-}
+hasActiveSession().then((active) => {
+  if (active) redirectToDashboard();
+});
 
 loginForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -72,14 +84,15 @@ loginForm?.addEventListener("submit", async (event) => {
   try {
     const response = await fetch(`${ADMIN_API_BASE_URL}/login`, {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(credentials),
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.message || "Invalid username or password.");
-    const token = result.token || result.accessToken;
-    if (!token) throw new Error("The server did not return an access token.");
-    sessionStorage.setItem(TOKEN_KEY, token);
+    if (!(await hasActiveSession())) {
+      throw new Error("The server did not establish a session cookie.");
+    }
     loginForm.reset();
     setStatus(loginStatus, "", "");
     showToast(result.message || "Signed in successfully.", "success");

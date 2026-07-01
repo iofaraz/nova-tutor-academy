@@ -1,7 +1,7 @@
 const nodemailer = require("nodemailer");
 
 const mailEnabled = Boolean(process.env.MAIL_USER && process.env.MAIL_PASS);
-// Set MAIL_FROM in production so admin and candidate emails are branded correctly.
+/*! Production note: set MAIL_FROM, MAIL_HOST, MAIL_PORT, and MAIL_SECURE for your real SMTP provider before launch. */
 
 const transporter = mailEnabled
   ? nodemailer.createTransport({

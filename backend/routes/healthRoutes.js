@@ -4,6 +4,7 @@ function createHealthRouter(testConnection, mailEnabled) {
   const router = express.Router();
 
   router.get("/health", async (req, res) => {
+    res.set("Cache-Control", "no-store");
     try {
       await testConnection();
       return res.json({

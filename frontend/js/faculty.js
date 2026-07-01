@@ -7,6 +7,7 @@ const isLocalFrontend =
   window.location.protocol === "file:" ||
   ["localhost", "127.0.0.1"].includes(window.location.hostname);
 const API_ORIGIN = isLocalFrontend ? "http://localhost:5000" : window.location.origin;
+/*! Production note: ensure faculty image paths are accessible from your production domain or CDN. Configure image domain in CSP. */
 const isPagesSection = window.location.pathname.includes("/pages/");
 const SITE_LOGO_URL = `${isPagesSection ? "../" : "./"}assets/logo.png`;
 const LOCAL_API_BASE_FALLBACKS = isLocalFrontend

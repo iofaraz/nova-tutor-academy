@@ -56,6 +56,7 @@ CREATE DATABASE nova_tutor_db;
 4. Start the Express server using `npm run dev` from `backend/`.
 
 The backend now serves the frontend files locally as well, so you can open the site through the Express app instead of `file://` when testing form submissions, authentication, and email notifications.
+The admin dashboard now uses secure `httpOnly` cookies plus CSRF protection, so sign in through the Express-served site rather than opening `frontend/index.html` directly.
 
 ---
 
